@@ -1,0 +1,8 @@
+#!/bin/bash
+# EkkoJS CLI launcher for Linux/macOS
+
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Run the CLI with all arguments passed through
+exec dotnet run --project "$SCRIPT_DIR/EkkoJS.CLI/EkkoJS.CLI.csproj" -- "$@"

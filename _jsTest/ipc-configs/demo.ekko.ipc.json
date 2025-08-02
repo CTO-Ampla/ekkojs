@@ -1,0 +1,143 @@
+{
+  "service": {
+    "name": "demo",
+    "version": "1.0.0",
+    "description": "Demo IPC service for user management",
+    "transport": {
+      "type": "namedpipe",
+      "address": "ekko-demo-service",
+      "timeout": 30000,
+      "maxConnections": 10
+    }
+  },
+  "methods": {
+    "getUsers": {
+      "description": "Get all users",
+      "parameters": [],
+      "returns": {
+        "type": "User[]",
+        "nullable": false
+      },
+      "timeout": 5000,
+      "isAsync": true
+    },
+    "getUserById": {
+      "description": "Get user by ID",
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": "User ID"
+        }
+      ],
+      "returns": {
+        "type": "User",
+        "nullable": true
+      },
+      "timeout": 5000,
+      "isAsync": true
+    },
+    "createUser": {
+      "description": "Create a new user",
+      "parameters": [
+        {
+          "name": "userData",
+          "type": "CreateUserRequest",
+          "required": true,
+          "description": "User data to create"
+        }
+      ],
+      "returns": {
+        "type": "User",
+        "nullable": false
+      },
+      "timeout": 10000,
+      "isAsync": true
+    },
+    "updateUser": {
+      "description": "Update an existing user",
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": "User ID"
+        },
+        {
+          "name": "userData",
+          "type": "UpdateUserRequest",
+          "required": true,
+          "description": "User data to update"
+        }
+      ],
+      "returns": {
+        "type": "User",
+        "nullable": true
+      },
+      "timeout": 10000,
+      "isAsync": true
+    },
+    "deleteUser": {
+      "description": "Delete a user",
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": "User ID"
+        }
+      ],
+      "returns": {
+        "type": "boolean",
+        "nullable": false
+      },
+      "timeout": 10000,
+      "isAsync": true
+    }
+  },
+  "events": {
+    "user-created": {
+      "description": "Fired when a user is created",
+      "dataType": "User"
+    },
+    "user-updated": {
+      "description": "Fired when a user is updated",
+      "dataType": "User"
+    },
+    "user-deleted": {
+      "description": "Fired when a user is deleted",
+      "dataType": "string"
+    }
+  },
+  "channels": {
+    "user-events": {
+      "description": "Channel for all user-related events",
+      "events": ["user-created", "user-updated", "user-deleted"]
+    },
+    "notifications": {
+      "description": "Channel for general notifications",
+      "events": ["info", "warning", "error"]
+    }
+  },
+  "types": {
+    "User": {
+      "id": "string",
+      "name": "string",
+      "email": "string",
+      "role": "string",
+      "createdAt": "string",
+      "updatedAt": "string"
+    },
+    "CreateUserRequest": {
+      "name": "string",
+      "email": "string",
+      "role": "string"
+    },
+    "UpdateUserRequest": {
+      "name": "string?",
+      "email": "string?",
+      "role": "string?"
+    }
+  }
+}

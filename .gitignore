@@ -1,0 +1,232 @@
+# .NET Build Results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio 2022 cache/options directory
+.vs/
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Rider
+.idea/
+*.sln.iml
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# NuGet Packages
+*.nupkg
+*.snupkg
+# The packages folder can be ignored because of Package Restore
+**/packages/*
+# except build/, which is used as an MSBuild target.
+!**/packages/build/
+# Uncomment if necessary however generally it will be regenerated when needed
+#!**/packages/repositories.config
+# NuGet v3's project.json files produces more ignorable files
+*.nuget.props
+*.nuget.targets
+
+# MSBuild Binary and Structured Log
+*.binlog
+
+# Files built by Visual Studio
+*_i.c
+*_p.c
+*_h.h
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.pch
+*.pdb
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*_wpftmp.csproj
+*.log
+*.tlog
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
+
+# Visual Studio profiler
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+# ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# DotCover
+*.dotCover
+
+# NCrunch
+_NCrunch_*
+.*crunch*.local.xml
+nCrunchTemp_*
+
+# Publish Web Output
+*.[Pp]ublish.xml
+*.azurePubxml
+*.pubxml
+*.publishproj
+
+# Publish to Azure Web App - Web Deploy
+PublishScripts/
+
+# Windows Store app package directories and files
+AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+_pkginfo.txt
+*.appx
+*.appxbundle
+*.appxupload
+
+# Node.js (for any npm packages if used)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Native C/C++ build files
+*.o
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+*.app
+*.a
+*.lib
+
+# Temporary files
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# EkkoJS specific
+*.ekko.cache
+.ekkojs/
+
+# Test output
+TestResults/
+test-results/
+
+# Build logs
+build.log
+msbuild.log
+
+# Local environment files
+.env
+.env.local
+.env.*.local
+
+# Backup files
+*.bak
+*.backup
+
+# Coverage reports
+coverage/
+*.coverage
+*.coveragexml
+coverage.json
+
+# Benchmark Results
+BenchmarkDotNet.Artifacts/
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+.directory
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Build artifacts from native libraries
+_jsTest/native-libraries/**/build/
+_jsTest/native-libraries/**/*.o
+_jsTest/native-libraries/**/*.so
+_jsTest/native-libraries/**/*.dylib
+_jsTest/native-libraries/**/*.dll
+_jsTest/native-libraries/**/*.a
+_jsTest/native-libraries/**/*.lib
+
+# Keep the source files
+!_jsTest/native-libraries/**/*.c
+!_jsTest/native-libraries/**/*.h
+!_jsTest/native-libraries/**/*.cpp
+!_jsTest/native-libraries/**/*.hpp
+!_jsTest/native-libraries/**/Makefile
+!_jsTest/native-libraries/**/*.sh
+!_jsTest/native-libraries/**/*.ekko.json

@@ -1,0 +1,81 @@
+{
+  "assembly": "test-assemblies/TestLibrary/bin/Debug/net9.0/TestLibrary.dll",
+  "version": "1.0.0",
+  "exports": {
+    "Calculator": {
+      "type": "TestLibrary.Calculator",
+      "methods": {
+        "add": {
+          "name": "Add",
+          "static": true
+        },
+        "subtract": {
+          "name": "Subtract",
+          "static": true
+        },
+        "multiply": {
+          "name": "Multiply",
+          "static": true
+        },
+        "divide": {
+          "name": "Divide",
+          "static": true
+        }
+      }
+    },
+    "StringHelper": {
+      "type": "TestLibrary.StringHelper",
+      "createInstance": true,
+      "constructor": {
+        "parameters": ["string"]
+      },
+      "methods": {
+        "format": {
+          "name": "Format",
+          "static": false
+        },
+        "split": {
+          "name": "Split",
+          "static": false,
+          "parameters": ["string", "char"]
+        },
+        "processAsync": {
+          "name": "ProcessAsync",
+          "static": false,
+          "async": true
+        }
+      },
+      "properties": {
+        "prefix": {
+          "name": "Prefix",
+          "readonly": false,
+          "static": false
+        }
+      }
+    },
+    "Constants": {
+      "type": "TestLibrary.Constants",
+      "fields": {
+        "version": "VERSION",
+        "maxLength": "MAX_LENGTH",
+        "buildDate": "BUILD_DATE"
+      }
+    },
+    "EventEmitter": {
+      "type": "TestLibrary.EventEmitter",
+      "createInstance": true,
+      "methods": {
+        "doWork": {
+          "name": "DoWork",
+          "static": false
+        }
+      },
+      "events": {
+        "onProgress": {
+          "name": "ProgressChanged",
+          "eventArgs": "TestLibrary.ProgressEventArgs"
+        }
+      }
+    }
+  }
+}

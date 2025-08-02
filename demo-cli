@@ -1,0 +1,5 @@
+#!/bin/bash
+# Run the CLI/GUI demo
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+exec dotnet run --project "$SCRIPT_DIR/EkkoJS.Demo.CLI/EkkoJS.Demo.CLI.csproj"

@@ -1,0 +1,121 @@
+{
+  "library": {
+    "windows": {
+      "x64": "mathlib.dll",
+      "x86": "mathlib32.dll"
+    },
+    "linux": {
+      "x64": "libmathlib.so",
+      "x86": "libmathlib32.so",
+      "arm64": "libmathlib-arm64.so"
+    },
+    "darwin": {
+      "x64": "libmathlib.dylib",
+      "arm64": "libmathlib-arm64.dylib"
+    }
+  },
+  "version": "1.0.0",
+  "exports": {
+    "add": {
+      "entryPoint": "add",
+      "returns": "int",
+      "parameters": [
+        { "name": "a", "type": "int" },
+        { "name": "b", "type": "int" }
+      ]
+    },
+    "subtract": {
+      "entryPoint": "subtract",
+      "returns": "int",
+      "parameters": [
+        { "name": "a", "type": "int" },
+        { "name": "b", "type": "int" }
+      ]
+    },
+    "multiplyDouble": {
+      "entryPoint": "multiply_double",
+      "returns": "double",
+      "parameters": [
+        { "name": "a", "type": "double" },
+        { "name": "b", "type": "double" }
+      ]
+    },
+    "divideDouble": {
+      "entryPoint": "divide_double",
+      "returns": "double",
+      "parameters": [
+        { "name": "a", "type": "double" },
+        { "name": "b", "type": "double" }
+      ]
+    },
+    "getVersion": {
+      "entryPoint": "get_version",
+      "returns": "string",
+      "parameters": []
+    },
+    "stringLength": {
+      "entryPoint": "string_length",
+      "returns": "int",
+      "parameters": [
+        { "name": "str", "type": "string" }
+      ]
+    },
+    "reverseString": {
+      "entryPoint": "reverse_string",
+      "returns": "void",
+      "parameters": [
+        { "name": "str", "type": "string", "ref": true }
+      ]
+    },
+    "distance": {
+      "entryPoint": "distance",
+      "returns": "double",
+      "parameters": [
+        { "name": "p1", "type": "Point", "ref": true },
+        { "name": "p2", "type": "Point", "ref": true }
+      ]
+    },
+    "translatePoint": {
+      "entryPoint": "translate_point",
+      "returns": "void",
+      "parameters": [
+        { "name": "p", "type": "Point", "ref": true },
+        { "name": "dx", "type": "double" },
+        { "name": "dy", "type": "double" }
+      ]
+    },
+    "sumArray": {
+      "entryPoint": "sum_array",
+      "returns": "int",
+      "parameters": [
+        { "name": "arr", "type": "int[]" },
+        { "name": "size", "type": "int" }
+      ]
+    },
+    "doubleArray": {
+      "entryPoint": "double_array",
+      "returns": "void",
+      "parameters": [
+        { "name": "arr", "type": "int[]", "ref": true },
+        { "name": "size", "type": "int" }
+      ]
+    }
+  },
+  "structs": {
+    "Point": {
+      "fields": [
+        { "name": "x", "type": "double" },
+        { "name": "y", "type": "double" }
+      ]
+    }
+  },
+  "callbacks": {
+    "MathCallback": {
+      "returns": "int",
+      "parameters": [
+        { "name": "a", "type": "int" },
+        { "name": "b", "type": "int" }
+      ]
+    }
+  }
+}

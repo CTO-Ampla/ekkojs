@@ -1,0 +1,54 @@
+# Set default behavior to automatically normalize line endings
+* text=auto
+
+# C# files
+*.cs text diff=csharp
+*.csproj text
+*.sln text eol=crlf
+
+# JavaScript and TypeScript files
+*.js text
+*.ts text
+*.jsx text
+*.tsx text
+*.json text
+
+# Documentation
+*.md text
+*.txt text
+*.xml text
+*.yml text
+*.yaml text
+
+# Scripts
+*.sh text eol=lf
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Binary files
+*.dll binary
+*.exe binary
+*.so binary
+*.dylib binary
+*.pdb binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.zip binary
+*.7z binary
+*.gz binary
+*.tar binary
+
+# Native code
+*.c text
+*.cpp text
+*.h text
+*.hpp text
+Makefile text eol=lf
+
+# Git files
+.gitignore text
+.gitattributes text

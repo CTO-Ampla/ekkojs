@@ -1,0 +1,17 @@
+#!/bin/bash
+# EkkoJS CLI launcher for Linux/macOS (using compiled binary)
+
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Path to the compiled binary
+EKKO_BIN="$SCRIPT_DIR/EkkoJS.CLI/bin/Debug/net9.0/EkkoJS.CLI"
+
+# Check if binary exists, build if not
+if [ ! -f "$EKKO_BIN" ]; then
+    echo "Building EkkoJS..."
+    dotnet build "$SCRIPT_DIR/EkkoJS.CLI/EkkoJS.CLI.csproj" -c Debug
+fi
+
+# Run the compiled binary with all arguments
+exec "$EKKO_BIN" "$@"

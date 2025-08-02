@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "lib": ["ES2022"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "types": [],
+    "typeRoots": ["./types"],
+    "baseUrl": ".",
+    "paths": {
+      "ekko:*": ["./types/ekko-*.d.ts"]
+    }
+  },
+  "include": [
+    "_jsTest/**/*.ts",
+    "types/**/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "bin",
+    "obj"
+  ]
+}

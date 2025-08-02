@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EkkoJS.Core", "EkkoJS.Core\EkkoJS.Core.csproj", "{B3CBACBE-98BE-46E6-9A80-7E6849A58409}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EkkoJS.CLI", "EkkoJS.CLI\EkkoJS.CLI.csproj", "{3B14BE6E-598C-45E8-AD64-6AD917341056}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EkkoJS.Package.CLI", "EkkoJS.Package.CLI\EkkoJS.Package.CLI.csproj", "{E9E13248-C0EC-4E28-94EF-C3C69E779D24}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EkkoJS.Package.GUI", "EkkoJS.Package.GUI\EkkoJS.Package.GUI.csproj", "{B07D1EB5-4F16-445B-8FA0-8F1F1FB4249D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EkkoJS.Demo.CLI", "EkkoJS.Demo.CLI\EkkoJS.Demo.CLI.csproj", "{EFC243EA-E977-4BC2-B3DB-47662D937775}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EkkoJS.Demo.IpcService", "EkkoJS.Demo.IpcService\EkkoJS.Demo.IpcService.csproj", "{311F6436-32A6-4B8A-8971-C94ADD525169}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B3CBACBE-98BE-46E6-9A80-7E6849A58409}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3CBACBE-98BE-46E6-9A80-7E6849A58409}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3CBACBE-98BE-46E6-9A80-7E6849A58409}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3CBACBE-98BE-46E6-9A80-7E6849A58409}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B14BE6E-598C-45E8-AD64-6AD917341056}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B14BE6E-598C-45E8-AD64-6AD917341056}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B14BE6E-598C-45E8-AD64-6AD917341056}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B14BE6E-598C-45E8-AD64-6AD917341056}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9E13248-C0EC-4E28-94EF-C3C69E779D24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9E13248-C0EC-4E28-94EF-C3C69E779D24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9E13248-C0EC-4E28-94EF-C3C69E779D24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9E13248-C0EC-4E28-94EF-C3C69E779D24}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B07D1EB5-4F16-445B-8FA0-8F1F1FB4249D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B07D1EB5-4F16-445B-8FA0-8F1F1FB4249D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B07D1EB5-4F16-445B-8FA0-8F1F1FB4249D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B07D1EB5-4F16-445B-8FA0-8F1F1FB4249D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFC243EA-E977-4BC2-B3DB-47662D937775}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFC243EA-E977-4BC2-B3DB-47662D937775}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFC243EA-E977-4BC2-B3DB-47662D937775}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFC243EA-E977-4BC2-B3DB-47662D937775}.Release|Any CPU.Build.0 = Release|Any CPU
+		{311F6436-32A6-4B8A-8971-C94ADD525169}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{311F6436-32A6-4B8A-8971-C94ADD525169}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{311F6436-32A6-4B8A-8971-C94ADD525169}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{311F6436-32A6-4B8A-8971-C94ADD525169}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
