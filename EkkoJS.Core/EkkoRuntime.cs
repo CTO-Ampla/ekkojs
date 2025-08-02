@@ -30,8 +30,15 @@ public class EkkoRuntime : IDisposable
         // Initialize timer manager
         _timerManager = new TimerManager(_eventLoop);
         
+        // Initialize .NET assembly loader
+        _dotNetLoader = new DotNetAssemblyLoader();
+        _dotNetLoader.SetEngine(_engine);
+        
+        // Initialize native library loader
+        _nativeLoader = new NativeLibraryLoader(_engine);
+        
         // Set up document loader for ES module support - ALL modules are ES modules
-        var documentLoader = new ModuleDocumentLoader(_engine);
+        var documentLoader = new ModuleDocumentLoader(_engine, _dotNetLoader, _nativeLoader);
         _engine.DocumentSettings.Loader = documentLoader;
         
         // Register built-in modules directly with document loader
@@ -42,16 +49,16 @@ public class EkkoRuntime : IDisposable
         _typeScriptCompiler = new TypeScriptCompiler();
         await _typeScriptCompiler.InitializeAsync();
         
-        // Initialize .NET assembly loader
-        _dotNetLoader = new DotNetAssemblyLoader();
-        _dotNetLoader.SetEngine(_engine);
-        
-        // Initialize native library loader
-        _nativeLoader = new NativeLibraryLoader(_engine);
-        
         // Add host bridge first
         _engine.AddHostObject("host", new HostBridge());
         _engine.AddHostObject("__timerManager", _timerManager);
+        
+        // Set up global objects for protocol integration
+        _engine.Execute(@"
+            globalThis.__dotnetTypes = {};
+            globalThis.__nativeLibs = {};
+            globalThis.__ipcClients = {};
+        ");
         
         // Set up basic console
         _engine.Execute(@"

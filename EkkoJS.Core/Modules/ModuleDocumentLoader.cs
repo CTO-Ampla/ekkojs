@@ -6,6 +6,9 @@ using System.Text;
 using System.Reflection;
 using EkkoJS.Core.Packages;
 using EkkoJS.Core.Modules.BuiltIn;
+using EkkoJS.Core.DotNet;
+using EkkoJS.Core.Native;
+using EkkoJS.Core.IPC;
 
 namespace EkkoJS.Core.Modules;
 
@@ -15,10 +18,14 @@ public class ModuleDocumentLoader : DocumentLoader
     private readonly List<string> _packageSearchPaths = new();
     private readonly Dictionary<string, IModule> _builtInModules = new();
     private readonly V8ScriptEngine _engine;
+    private readonly DotNetAssemblyLoader _dotNetLoader;
+    private readonly NativeLibraryLoader _nativeLoader;
 
-    public ModuleDocumentLoader(V8ScriptEngine engine)
+    public ModuleDocumentLoader(V8ScriptEngine engine, DotNetAssemblyLoader dotNetLoader, NativeLibraryLoader nativeLoader)
     {
         _engine = engine;
+        _dotNetLoader = dotNetLoader;
+        _nativeLoader = nativeLoader;
         // Add default search paths for packages
         _packageSearchPaths.Add(Path.Combine(Directory.GetCurrentDirectory(), "node_modules"));
         _packageSearchPaths.Add(Path.Combine(Directory.GetCurrentDirectory(), "packages"));
@@ -64,10 +71,49 @@ public class ModuleDocumentLoader : DocumentLoader
             );
         }
         
-        // Handle dotnet:, native:, ipc: protocols - not implemented yet
-        if (specifier.StartsWith("dotnet:") || specifier.StartsWith("native:") || specifier.StartsWith("ipc:"))
+        // Handle dotnet: protocol
+        if (specifier.StartsWith("dotnet:"))
         {
-            throw new NotImplementedException($"Protocol not yet implemented in document loader: {specifier}");
+            var moduleSpec = specifier.Substring("dotnet:".Length);
+            var jsCode = GetDotNetModule(moduleSpec);
+            
+            Console.WriteLine($"[DocumentLoader] Loaded .NET module: {specifier} ({jsCode.Length} chars)");
+            
+            // Return as ES module with ModuleCategory.Standard
+            return new StringDocument(
+                new DocumentInfo(new Uri($"ekko://dotnet/{moduleSpec}")) { Category = ModuleCategory.Standard },
+                jsCode
+            );
+        }
+        
+        // Handle native: protocol
+        if (specifier.StartsWith("native:"))
+        {
+            var libraryName = specifier.Substring("native:".Length);
+            var jsCode = GetNativeModule(libraryName);
+            
+            Console.WriteLine($"[DocumentLoader] Loaded native module: {specifier} ({jsCode.Length} chars)");
+            
+            // Return as ES module with ModuleCategory.Standard
+            return new StringDocument(
+                new DocumentInfo(new Uri($"ekko://native/{libraryName}")) { Category = ModuleCategory.Standard },
+                jsCode
+            );
+        }
+        
+        // Handle ipc: protocol
+        if (specifier.StartsWith("ipc:"))
+        {
+            var serviceName = specifier.Substring("ipc:".Length);
+            var jsCode = GetIpcModule(serviceName);
+            
+            Console.WriteLine($"[DocumentLoader] Loaded IPC module: {specifier} ({jsCode.Length} chars)");
+            
+            // Return as ES module with ModuleCategory.Standard
+            return new StringDocument(
+                new DocumentInfo(new Uri($"ekko://ipc/{serviceName}")) { Category = ModuleCategory.Standard },
+                jsCode
+            );
         }
         
         // Handle file paths - load from disk
@@ -240,6 +286,190 @@ delete globalThis.__tempExports;
         }
         
         throw new InvalidOperationException($"Built-in module not found: ekko:{moduleName}");
+    }
+    
+    private string GetDotNetModule(string moduleSpec)
+    {
+        // Parse module spec: "dotnet:AssemblyName" or "dotnet:AssemblyName/ExportName"
+        var parts = moduleSpec.Split('/');
+        var assemblyName = parts[0];
+        var exportName = parts.Length > 1 ? parts[1] : null;
+        
+        Console.WriteLine($"[DocumentLoader] Loading .NET module: {moduleSpec}");
+        
+        var sb = new StringBuilder();
+        
+        try
+        {
+            if (exportName != null)
+            {
+                // Get specific export
+                var export = _dotNetLoader.GetExport(assemblyName, exportName);
+                
+                // Store in global for JavaScript access
+                _engine.Script[$"__dotnet_{assemblyName}_{exportName}"] = export;
+                
+                sb.AppendLine($@"
+// .NET type: {assemblyName}/{exportName}
+const hostType = globalThis.__dotnet_{assemblyName}_{exportName};
+if (!hostType) {{
+    throw new Error('Export not found: {assemblyName}/{exportName}');
+}}
+
+// Export the type as default
+export default hostType;
+");
+            }
+            else
+            {
+                // Get all exports from assembly
+                var exports = _dotNetLoader.GetAllExports(assemblyName);
+                
+                // Store in global for JavaScript access
+                _engine.Script[$"__dotnet_{assemblyName}"] = exports;
+                
+                sb.AppendLine($@"
+// .NET assembly: {assemblyName}
+const assembly = globalThis.__dotnet_{assemblyName};
+if (!assembly) {{
+    throw new Error('Assembly not found: {assemblyName}');
+}}
+
+// Export all types as named exports
+const exportNames = Object.keys(assembly);
+for (const name of exportNames) {{
+    if (name !== 'default') {{
+        exports[name] = assembly[name];
+    }}
+}}
+
+// Also export the entire assembly namespace as default
+export default assembly;
+");
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to load .NET module: {moduleSpec}", ex);
+        }
+        
+        return sb.ToString();
+    }
+    
+    private string GetNativeModule(string libraryName)
+    {
+        Console.WriteLine($"[DocumentLoader] Loading native module: {libraryName}");
+        
+        var sb = new StringBuilder();
+        
+        try
+        {
+            // Load the native library
+            var exports = _nativeLoader.LoadLibrary(libraryName);
+            
+            // Store in global for JavaScript access
+            _engine.Script[$"__native_{libraryName}"] = exports;
+            
+            sb.AppendLine($@"
+// Native library: {libraryName}
+const lib = globalThis.__native_{libraryName};
+if (!lib) {{
+    throw new Error('Native library not found: {libraryName}');
+}}
+
+// Re-export all functions from the library
+");
+            
+            // We need to know the function names at compile time for ES modules
+            // For now, we'll export the whole library object and let users destructure
+            sb.AppendLine("// Export the library object - destructure as needed");
+            sb.AppendLine("export default lib;");
+            sb.AppendLine("");
+            sb.AppendLine("// For convenience, also expose common patterns");
+            sb.AppendLine("export const call = (funcName, ...args) => lib[funcName](...args);");
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to load native module: {libraryName}", ex);
+        }
+        
+        return sb.ToString();
+    }
+    
+    private string GetIpcModule(string serviceName)
+    {
+        Console.WriteLine($"[DocumentLoader] Loading IPC module: {serviceName}");
+        
+        var sb = new StringBuilder();
+        
+        try
+        {
+            // Find IPC service mapping file
+            var mappingPath = FindIpcMappingFile(serviceName);
+            IpcServiceMapping? serviceMapping = null;
+            TransportConfig transportConfig;
+
+            if (mappingPath != null && File.Exists(mappingPath))
+            {
+                var json = File.ReadAllText(mappingPath);
+                serviceMapping = System.Text.Json.JsonSerializer.Deserialize<IpcServiceMapping>(json, new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                
+                transportConfig = serviceMapping?.Service.Transport ?? new TransportConfig();
+            }
+            else
+            {
+                // Default configuration if no mapping file found
+                transportConfig = new TransportConfig
+                {
+                    Type = "namedpipe",
+                    Address = serviceName
+                };
+            }
+
+            // Create IPC module instance
+            var ipcModule = new IpcModule(serviceName, transportConfig, serviceMapping);
+            var exports = ipcModule.GetExports();
+            
+            // Store in global for JavaScript access
+            _engine.Script[$"__ipc_{serviceName}"] = exports;
+            
+            sb.AppendLine($@"
+// IPC service: {serviceName}
+const client = globalThis.__ipc_{serviceName};
+if (!client) {{
+    throw new Error('IPC service not found: {serviceName}');
+}}
+
+// Export IPC client methods
+export const {{ connect, disconnect, call, subscribe, publish, isConnected }} = client;
+
+// Also export the entire client as default
+export default client;
+");
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to load IPC module: {serviceName}", ex);
+        }
+        
+        return sb.ToString();
+    }
+    
+    private string? FindIpcMappingFile(string serviceName)
+    {
+        var searchPaths = new[]
+        {
+            Path.Combine(Directory.GetCurrentDirectory(), $"{serviceName}.ekko.ipc.json"),
+            Path.Combine(Directory.GetCurrentDirectory(), "ipc", $"{serviceName}.ekko.ipc.json"),
+            Path.Combine(Directory.GetCurrentDirectory(), "_jsTest", "ipc", $"{serviceName}.ekko.ipc.json"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), 
+                ".ekkojs", "ipc", $"{serviceName}.ekko.ipc.json")
+        };
+
+        return searchPaths.FirstOrDefault(File.Exists);
     }
 }
 

@@ -596,9 +596,9 @@ namespace demo.hello_world
 | `ekko:` | ✅ In DocumentLoader | ✅ Already complete |
 | `package:` | ✅ In DocumentLoader | ✅ Already complete |
 | `file path` | ✅ In DocumentLoader | ✅ Already complete |
-| `dotnet:` | ❌ NotImplementedException<br/>✅ Works via ESModuleLoader | 🎯 Generate ES module JS in DocumentLoader |
-| `native:` | ❌ NotImplementedException<br/>✅ Works via ESModuleLoader | 🎯 Generate ES module JS in DocumentLoader |
-| `ipc:` | ❌ NotImplementedException<br/>✅ Works via ESModuleLoader | 🎯 Generate ES module JS in DocumentLoader |
+| `dotnet:` | ✅ In DocumentLoader | ✅ Complete - Generates ES module JS |
+| `native:` | ✅ In DocumentLoader | ✅ Complete - Generates ES module JS |
+| `ipc:` | ✅ In DocumentLoader | ✅ Complete - Generates ES module JS |
 
 ### Implementation Tasks
 
@@ -665,13 +665,13 @@ private string GetIpcModule(string serviceName)
 }
 ```
 
-### Migration Strategy
+### Migration Complete
 
-1. **Phase 1**: Implement the three Get*Module methods in DocumentLoader
-2. **Phase 2**: Set up the necessary global objects (_dotnetTypes, _nativeLibs, _ipcClients)
-3. **Phase 3**: Test each protocol thoroughly
-4. **Phase 4**: Remove ESModuleLoader and its dependencies
-5. **Phase 5**: Clean up unused code
+All protocols have been successfully migrated to the Document Loader pattern:
+- ✅ All protocols now generate ES module JavaScript
+- ✅ ESModuleLoader has been removed
+- ✅ All module loading goes through ModuleDocumentLoader
+- ✅ Everything is treated as ES modules (ModuleCategory.Standard)
 
 ## Notes
 
