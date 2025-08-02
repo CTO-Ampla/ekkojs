@@ -1,4 +1,6 @@
+using Microsoft.ClearScript;
 using Microsoft.ClearScript.V8;
+using Microsoft.ClearScript.JavaScript;
 using EkkoJS.Core.Modules;
 using EkkoJS.Core.Modules.BuiltIn;
 using EkkoJS.Core.TypeScript;
@@ -13,7 +15,6 @@ public class EkkoRuntime : IDisposable
     private V8ScriptEngine? _engine;
     private EventLoop? _eventLoop;
     private TimerManager? _timerManager;
-    private ESModuleLoader? _moduleLoader;
     private TypeScriptCompiler? _typeScriptCompiler;
     private DotNetAssemblyLoader? _dotNetLoader;
     private NativeLibraryLoader? _nativeLoader;
@@ -29,10 +30,13 @@ public class EkkoRuntime : IDisposable
         // Initialize timer manager
         _timerManager = new TimerManager(_eventLoop);
         
-        // Initialize module loader
-        _moduleLoader = new ESModuleLoader(_engine);
-        RegisterBuiltInModules();
-        _moduleLoader.InstallImportHandler();
+        // Set up document loader for ES module support - ALL modules are ES modules
+        var documentLoader = new ModuleDocumentLoader(_engine);
+        _engine.DocumentSettings.Loader = documentLoader;
+        
+        // Register built-in modules directly with document loader
+        documentLoader.RegisterBuiltInModule("fs", new FileSystemModule());
+        documentLoader.RegisterBuiltInModule("path", new PathModule());
         
         // Initialize TypeScript compiler
         _typeScriptCompiler = new TypeScriptCompiler();
@@ -41,11 +45,9 @@ public class EkkoRuntime : IDisposable
         // Initialize .NET assembly loader
         _dotNetLoader = new DotNetAssemblyLoader();
         _dotNetLoader.SetEngine(_engine);
-        _moduleLoader.SetDotNetLoader(_dotNetLoader);
         
         // Initialize native library loader
         _nativeLoader = new NativeLibraryLoader(_engine);
-        _moduleLoader.SetNativeLoader(_nativeLoader);
         
         // Add host bridge first
         _engine.AddHostObject("host", new HostBridge());
@@ -77,11 +79,6 @@ public class EkkoRuntime : IDisposable
         await Task.CompletedTask;
     }
 
-    private void RegisterBuiltInModules()
-    {
-        _moduleLoader!.RegisterModule(new FileSystemModule());
-        _moduleLoader!.RegisterModule(new PathModule());
-    }
 
     public async Task<object?> ExecuteAsync(string code, string fileName = "<anonymous>")
     {
@@ -115,57 +112,14 @@ public class EkkoRuntime : IDisposable
                 }
             }
             
-            // Check if the code contains ES module syntax
-            bool isESModule = code.Contains("import ") || code.Contains("export ");
+            // No transformation needed - ClearScript handles ES modules natively
             
-            if (isESModule)
+            // EVERYTHING is an ES module - 100% ES modules only
+            await _eventLoop!.QueueTaskAsync(() =>
             {
-                // Transform ES module code
-                var transformedCode = ESModuleCompiler.TransformESModule(code, fileName);
-                code = transformedCode;
-                
-                // Debug: log transformed code
-                if (Environment.GetEnvironmentVariable("EKKO_DEBUG") == "1")
-                {
-                    Console.WriteLine("=== Transformed ES Module ===");
-                    Console.WriteLine(code);
-                    Console.WriteLine("=== End Transformed ===");
-                }
-            }
-            
-            // Execute in event loop context
-            if (isESModule)
-            {
-                // For ES modules, execute and wait for the module promise
-                await _eventLoop!.QueueTaskAsync(() =>
-                {
-                    // Execute the transformed module code
-                    _engine.Execute(documentName: fileName, code: code);
-                    
-                    // Wait for the module promise to complete
-                    _engine.Execute(@"
-                        if (globalThis.__currentModulePromise) {
-                            globalThis.__currentModulePromise.then(() => {
-                                // Module execution completed
-                                delete globalThis.__currentModulePromise;
-                            }).catch(error => {
-                                console.error('Module execution error:', error);
-                                delete globalThis.__currentModulePromise;
-                            });
-                        }
-                    ");
-                });
-                
-                // Give time for async operations to complete
-                await Task.Delay(100);
-            }
-            else
-            {
-                await _eventLoop!.QueueTaskAsync(() =>
-                {
-                    _engine.Execute(documentName: fileName, code: code);
-                });
-            }
+                // Always execute as ES module with ModuleCategory.Standard
+                _engine.Execute(new DocumentInfo { Category = ModuleCategory.Standard }, code);
+            });
             return null;
         }
         catch (Microsoft.ClearScript.ScriptEngineException ex)

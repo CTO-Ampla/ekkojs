@@ -15,6 +15,7 @@ public class ESModuleLoader
     private readonly ConcurrentDictionary<string, IModule> _modules;
     private readonly ConcurrentDictionary<string, object> _moduleCache;
     private readonly ConcurrentDictionary<string, TaskCompletionSource<object>> _loadingModules;
+    private readonly List<IModuleLoader> _customLoaders;
     private DotNetAssemblyLoader? _dotNetLoader;
     private NativeLibraryLoader? _nativeLoader;
 
@@ -24,12 +25,18 @@ public class ESModuleLoader
         _modules = new ConcurrentDictionary<string, IModule>();
         _moduleCache = new ConcurrentDictionary<string, object>();
         _loadingModules = new ConcurrentDictionary<string, TaskCompletionSource<object>>();
+        _customLoaders = new List<IModuleLoader>();
     }
 
     public void RegisterModule(IModule module)
     {
         var key = $"{module.Protocol}:{module.Name}";
         _modules[key] = module;
+    }
+
+    public void RegisterModuleLoader(IModuleLoader loader)
+    {
+        _customLoaders.Add(loader);
     }
 
     public void SetDotNetLoader(DotNetAssemblyLoader loader)
@@ -66,6 +73,33 @@ public class ESModuleLoader
 
         try
         {
+            // Check custom loaders first
+            foreach (var loader in _customLoaders)
+            {
+                if (loader.CanLoad(moduleSpecifier))
+                {
+                    var moduleContent = loader.Load(moduleSpecifier, null);
+                    
+                    // If the loader returns a string, it's JavaScript code
+                    if (moduleContent is string jsCode)
+                    {
+                        // Let ClearScript's native ES module support handle the code
+                        // Just return the JavaScript text - no transformation needed
+                        _moduleCache[moduleSpecifier] = jsCode;
+                        tcs.SetResult(jsCode);
+                        return jsCode;
+                    }
+                    else
+                    {
+                        // Otherwise, treat it as already-processed module exports
+                        var customModuleNamespace = CreateModuleNamespace(moduleContent);
+                        _moduleCache[moduleSpecifier] = customModuleNamespace;
+                        tcs.SetResult(customModuleNamespace);
+                        return customModuleNamespace;
+                    }
+                }
+            }
+
             var (protocol, moduleName) = ParseModuleSpecifier(moduleSpecifier);
             
             if (protocol == null)
@@ -224,24 +258,24 @@ public class ESModuleLoader
         _engine.Execute(documentName: "[import-meta]", code: importMetaCode);
         
         // Install dynamic import() function
-        _engine.AddHostObject("__ekkoLoadModule", new Func<string, object>(moduleSpecifier =>
+        _engine.AddHostObject("__ekkoLoadModule", new Func<string, Task<object>>(moduleSpecifier =>
         {
-            var task = LoadModuleAsync(moduleSpecifier);
-            task.Wait();
-            return task.Result;
+            return LoadModuleAsync(moduleSpecifier);
         }));
         
         var dynamicImportCode = @"
             // Override the global import function
-            globalThis.import = function(specifier) {
-                return new Promise((resolve, reject) => {
-                    try {
-                        const module = __ekkoLoadModule(specifier);
-                        resolve(module);
-                    } catch (error) {
-                        reject(new Error(`Failed to import module '${specifier}': ${error.message || error}`));
-                    }
-                });
+            globalThis.import = async function(specifier) {
+                console.log('[Import] Loading module:', specifier);
+                try {
+                    const modulePromise = __ekkoLoadModule(specifier);
+                    const module = await modulePromise;
+                    console.log('[Import] Module loaded:', specifier, module);
+                    return module;
+                } catch (error) {
+                    console.error('[Import] Failed to load module:', specifier, error);
+                    throw new Error(`Failed to import module '${specifier}': ${error.message || error}`);
+                }
             };
         ";
         

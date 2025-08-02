@@ -1,0 +1,9 @@
+{
+  "name": "@demo/hello-world",
+  "version": "1.0.0",
+  "description": "A simple demo package for EkkoJS",
+  "author": "Demo Author",
+  "license": "MIT",
+  "keywords": ["demo", "hello", "world"],
+  "main": "src/index.js"
+}

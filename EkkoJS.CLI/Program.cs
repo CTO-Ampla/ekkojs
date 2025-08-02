@@ -1,4 +1,5 @@
 using EkkoJS.Core;
+using EkkoJS.Package.CLI.Compiler;
 
 namespace EkkoJS.CLI;
 
@@ -42,6 +43,24 @@ class Program
                 ShowHelp();
                 return 0;
 
+            case "build":
+                if (args.Length < 2)
+                {
+                    Console.Error.WriteLine("Error: Please specify what to build");
+                    Console.Error.WriteLine("Usage: ekko build package [path]");
+                    return 1;
+                }
+                if (args[1].ToLowerInvariant() == "package")
+                {
+                    var packagePath = args.Length > 2 ? args[2] : Directory.GetCurrentDirectory();
+                    return await BuildPackage(packagePath);
+                }
+                else
+                {
+                    Console.Error.WriteLine($"Unknown build target: {args[1]}");
+                    return 1;
+                }
+
             default:
                 Console.Error.WriteLine($"Unknown command: {command}");
                 ShowHelp();
@@ -56,10 +75,12 @@ class Program
         Console.WriteLine("Usage: ekko <command> [arguments]");
         Console.WriteLine();
         Console.WriteLine("Commands:");
-        Console.WriteLine("  run <file>    Execute a JavaScript or TypeScript file");
-        Console.WriteLine("  repl          Start an interactive REPL session");
-        Console.WriteLine("  version       Display version information");
-        Console.WriteLine("  help          Show this help message");
+        Console.WriteLine("  run <file>          Execute a JavaScript or TypeScript file");
+        Console.WriteLine("  repl                Start an interactive REPL session");
+        Console.WriteLine("  build package       Build current directory as an EkkoJS package");
+        Console.WriteLine("  build package <dir> Build specified directory as an EkkoJS package");
+        Console.WriteLine("  version             Display version information");
+        Console.WriteLine("  help                Show this help message");
         Console.WriteLine();
         Console.WriteLine("Options:");
         Console.WriteLine("  -v, --version Show version information");
@@ -147,6 +168,64 @@ class Program
             {
                 Console.Error.WriteLine($"Error: {ex.Message}");
             }
+        }
+    }
+
+    private static async Task<int> BuildPackage(string packagePath)
+    {
+        try
+        {
+            Console.WriteLine($"Building package from: {packagePath}");
+            
+            var compiler = new PackageCompiler();
+            var options = new CompilerOptions
+            {
+                Debug = false,
+                OutputPath = Path.Combine(packagePath, "dist")
+            };
+
+            var result = await compiler.CompilePackageAsync(packagePath, options);
+            
+            if (!result.Success)
+            {
+                Console.Error.WriteLine("Compilation failed:");
+                foreach (var error in result.Errors)
+                {
+                    Console.Error.WriteLine($"  {error}");
+                }
+                return 1;
+            }
+
+            // Ensure output directory exists
+            if (!string.IsNullOrEmpty(options.OutputPath))
+            {
+                Directory.CreateDirectory(options.OutputPath);
+            }
+
+            // Write the assembly
+            var manifestPath = Path.Combine(packagePath, ".ekko", "ekko.json");
+            var manifestJson = await File.ReadAllTextAsync(manifestPath);
+            dynamic manifest = Newtonsoft.Json.JsonConvert.DeserializeObject(manifestJson)!;
+            var packageName = ((string)manifest.name).Replace("/", ".").Replace("@", "");
+            var outputFile = Path.Combine(options.OutputPath ?? packagePath, $"{packageName}.dll");
+            
+            await File.WriteAllBytesAsync(outputFile, result.Assembly!);
+            
+            Console.WriteLine($"✓ Package built successfully: {outputFile}");
+            Console.WriteLine($"  Size: {result.Assembly!.Length / 1024}KB");
+            
+            return 0;
+        }
+        catch (FileNotFoundException ex)
+        {
+            Console.Error.WriteLine($"Error: {ex.Message}");
+            Console.Error.WriteLine("Make sure you have a valid .ekko/ekko.json manifest file");
+            return 1;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Build failed: {ex.Message}");
+            return 1;
         }
     }
 }

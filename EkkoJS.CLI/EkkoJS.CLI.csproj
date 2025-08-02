@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EkkoJS.Core\EkkoJS.Core.csproj" />
+    <ProjectReference Include="..\EkkoJS.Package.CLI\EkkoJS.Package.CLI.csproj" />
   </ItemGroup>
 
 
