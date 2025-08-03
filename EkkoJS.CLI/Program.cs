@@ -111,8 +111,82 @@ class Program
             await runtime.InitializeAsync();
             await runtime.ExecuteAsync(code, filePath);
             
-            // Wait a bit for any pending timers to complete
-            await Task.Delay(5000);
+            // Wait for any pending timers and tasks to complete
+            // Default timeout of 5 minutes, but can be overridden with EKKO_TIMEOUT environment variable
+            var timeoutSeconds = 300; // 5 minutes default
+            if (int.TryParse(Environment.GetEnvironmentVariable("EKKO_TIMEOUT"), out var customTimeout) && customTimeout > 0)
+            {
+                timeoutSeconds = customTimeout;
+            }
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
+            try
+            {
+                // Debug logging
+                if (Environment.GetEnvironmentVariable("EKKO_DEBUG") == "1")
+                {
+                    Console.WriteLine($"[DEBUG] Initial timer count: {runtime.TimerManager?.PendingTimerCount() ?? 0}");
+                    Console.WriteLine($"[DEBUG] Event loop has tasks: {runtime.EventLoop?.HasPendingTasks() ?? false}");
+                }
+                
+                // Wait for both timers and event loop tasks
+                var waitCount = 0;
+                var noActivityCount = 0;
+                const int noActivityThreshold = 10; // 1 second of no activity
+                var lastTimerCount = -1;
+                
+                while (!cts.Token.IsCancellationRequested)
+                {
+                    var currentTimerCount = runtime.TimerManager?.PendingTimerCount() ?? 0;
+                    var hasTasks = runtime.EventLoop?.HasPendingTasks() ?? false;
+                    
+                    // Check if there's been any change in timer count
+                    var hasActivity = (currentTimerCount != lastTimerCount) || hasTasks || currentTimerCount > 0;
+                    lastTimerCount = currentTimerCount;
+                    
+                    if (hasActivity)
+                    {
+                        // Reset no-activity counter if we have work
+                        noActivityCount = 0;
+                    }
+                    else
+                    {
+                        // No activity detected
+                        noActivityCount++;
+                        
+                        if (Environment.GetEnvironmentVariable("EKKO_DEBUG") == "1" && noActivityCount > 5)
+                        {
+                            Console.WriteLine($"[DEBUG] No activity for {noActivityCount * 100}ms");
+                        }
+                        
+                        if (noActivityCount >= noActivityThreshold)
+                        {
+                            // No activity for 1 second, safe to exit
+                            if (Environment.GetEnvironmentVariable("EKKO_DEBUG") == "1")
+                            {
+                                Console.WriteLine("[DEBUG] No activity threshold reached, exiting...");
+                            }
+                            break;
+                        }
+                    }
+                    
+                    await Task.Delay(100, cts.Token);
+                    waitCount++;
+                    
+                    if (Environment.GetEnvironmentVariable("EKKO_DEBUG") == "1" && waitCount % 10 == 0)
+                    {
+                        Console.WriteLine($"[DEBUG] Waiting... Timers: {currentTimerCount}, Tasks: {hasTasks}, NoActivity: {noActivityCount}/{noActivityThreshold}");
+                    }
+                }
+                
+                if (Environment.GetEnvironmentVariable("EKKO_DEBUG") == "1")
+                {
+                    Console.WriteLine($"[DEBUG] Wait complete. Total wait cycles: {waitCount}");
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine($"Warning: Script execution timed out after {timeoutSeconds} seconds with pending operations.");
+            }
         }
         catch (RuntimeException ex)
         {

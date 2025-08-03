@@ -15,6 +15,16 @@ public class TimerManager : IDisposable
         _eventLoop = eventLoop;
     }
 
+    public bool HasPendingTimers()
+    {
+        return !_timers.IsEmpty;
+    }
+
+    public int PendingTimerCount()
+    {
+        return _timers.Count;
+    }
+
     private class TimerInfo
     {
         public required int Id { get; set; }
@@ -39,6 +49,10 @@ public class TimerManager : IDisposable
                 {
                     if (_timers.TryRemove(timerId, out var info))
                     {
+                        if (Environment.GetEnvironmentVariable("EKKO_DEBUG") == "1")
+                        {
+                            Console.WriteLine($"[DEBUG TimerManager] Timer {timerId} firing, {_timers.Count} remaining");
+                        }
                         InvokeCallback(info.Callback, info.Arguments);
                         info.Timer.Dispose();
                     }
@@ -61,6 +75,12 @@ public class TimerManager : IDisposable
         };
 
         _timers[timerId] = timerInfo;
+        
+        if (Environment.GetEnvironmentVariable("EKKO_DEBUG") == "1")
+        {
+            Console.WriteLine($"[DEBUG TimerManager] Timer {timerId} created with {delay}ms delay, total timers: {_timers.Count}");
+        }
+        
         return timerId;
     }
 
@@ -100,6 +120,12 @@ public class TimerManager : IDisposable
         };
 
         _timers[timerId] = timerInfo;
+        
+        if (Environment.GetEnvironmentVariable("EKKO_DEBUG") == "1")
+        {
+            Console.WriteLine($"[DEBUG TimerManager] Timer {timerId} created with {delay}ms delay, total timers: {_timers.Count}");
+        }
+        
         return timerId;
     }
 
@@ -128,6 +154,15 @@ public class TimerManager : IDisposable
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Error invoking callback: {ex.Message}");
+        }
+    }
+
+    public async Task WaitForPendingTimersAsync(CancellationToken cancellationToken = default)
+    {
+        // Wait until all timers are completed or cancelled
+        while (HasPendingTimers() && !cancellationToken.IsCancellationRequested)
+        {
+            await Task.Delay(100, cancellationToken);
         }
     }
 

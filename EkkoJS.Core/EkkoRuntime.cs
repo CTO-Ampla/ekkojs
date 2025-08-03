@@ -20,6 +20,9 @@ public class EkkoRuntime : IDisposable
     private NativeLibraryLoader? _nativeLoader;
     private bool _disposed;
 
+    public TimerManager? TimerManager => _timerManager;
+    public EventLoop? EventLoop => _eventLoop;
+
     public async Task InitializeAsync()
     {
         _engine = new V8ScriptEngine(V8ScriptEngineFlags.EnableTaskPromiseConversion);
@@ -181,6 +184,7 @@ public class EkkoRuntime : IDisposable
             };
         ");
     }
+
 
     public void Dispose()
     {

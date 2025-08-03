@@ -1347,15 +1347,63 @@ namespace EkkoJS.Core.Modules.Cli
                 Children = new List<TreeNode>()
             };
             
-            if (dict.ContainsKey("children") && dict["children"] is object[] children)
+            if (dict.ContainsKey("children"))
             {
-                foreach (var child in children)
+                var childrenObj = dict["children"];
+                
+                // Debug logging
+                if (Environment.GetEnvironmentVariable("EKKO_DEBUG") == "1")
                 {
-                    if (child is IDictionary<string, object> childDict)
+                    Console.WriteLine($"[DEBUG] Tree children type: {childrenObj?.GetType()?.FullName}");
+                }
+                
+                // Handle different array representations from ClearScript
+                if (childrenObj is object[] children)
+                {
+                    foreach (var child in children)
                     {
-                        var childNode = ParseTreeNode(childDict);
-                        if (childNode != null)
-                            node.Children.Add(childNode);
+                        if (child is IDictionary<string, object> childDict)
+                        {
+                            var childNode = ParseTreeNode(childDict);
+                            if (childNode != null)
+                                node.Children.Add(childNode);
+                        }
+                    }
+                }
+                else if (childrenObj is IEnumerable<object> enumerable)
+                {
+                    foreach (var child in enumerable)
+                    {
+                        if (child is IDictionary<string, object> childDict)
+                        {
+                            var childNode = ParseTreeNode(childDict);
+                            if (childNode != null)
+                                node.Children.Add(childNode);
+                        }
+                    }
+                }
+                else if (childrenObj != null)
+                {
+                    // Try to handle ClearScript array-like objects
+                    var type = childrenObj.GetType();
+                    var lengthProp = type.GetProperty("length");
+                    if (lengthProp != null)
+                    {
+                        var length = Convert.ToInt32(lengthProp.GetValue(childrenObj));
+                        for (int i = 0; i < length; i++)
+                        {
+                            var itemProp = type.GetProperty(i.ToString());
+                            if (itemProp != null)
+                            {
+                                var child = itemProp.GetValue(childrenObj);
+                                if (child is IDictionary<string, object> childDict)
+                                {
+                                    var childNode = ParseTreeNode(childDict);
+                                    if (childNode != null)
+                                        node.Children.Add(childNode);
+                                }
+                            }
+                        }
                     }
                 }
             }

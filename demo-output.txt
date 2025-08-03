@@ -1,0 +1,73 @@
+[DocumentLoader] Loading: ekko:cli
+[33mStarting Complete EkkoJS CLI Demo...[0m
+[2mThis demo will showcase ALL implemented CLI components.
+[0m
+[1m[34m╔═══════════════════════════════════════════════════════════╗[0m[0m
+[1m[34m║               EkkoJS CLI - Complete Demo                 ║[0m[0m
+[1m[34m║          Showcasing ALL Implemented Components           ║[0m[0m
+[1m[34m╚═══════════════════════════════════════════════════════════╝[0m[0m
+
+[1m[36m1. Color and Styling System[0m[0m
+[2mTesting all color variants and styles
+[0m
+Basic Colors:
+  [31mRed[0m [32mGreen[0m [33mYellow[0m [34mBlue[0m
+  [35mMagenta[0m [36mCyan[0m [37mWhite[0m [90mGray[0m [30mBlack[0m
+
+Bright Colors:
+  [91mBright Red[0m [92mBright Green[0m [94mBright Blue[0m
+
+Background Colors:
+  [41m[37mRed BG[0m[0m [42m[30mGreen BG[0m[0m [44m[37mBlue BG[0m[0m
+
+Text Styles:
+  [1mBold[0m [3mItalic[0m [4mUnderlined[0m
+  [9mStrikethrough[0m [7mInverse[0m [2mDimmed[0m
+
+256 Color Support:
+  [38;5;196mCustom Red[0m [38;5;46mCustom Green[0m [48;5;21mBlue Background[0m
+
+RGB and Hex Colors:
+  [38;2;255;165;0mOrange RGB[0m [38;2;255;107;53mOrange Hex[0m
+
+────────────────────────────────────────────────────────────
+
+[1m[36m2. Screen and Cursor Control[0m[0m
+[2mTesting screen size detection and cursor operations
+[0m
+Screen Size: [32m80x24[0m
+
+Cursor Operations:
+Moving cursor and writing text...
+[s[33m← Text written at specific position[0m[u
+────────────────────────────────────────────────────────────
+
+[1m[36m3. String Utilities[0m[0m
+[2mTesting string measurement, truncation, wrapping, and padding
+[0m
+Original: "Hello World! 世界 Unicode"
+String Width: 25 characters
+
+Truncation:
+  End: "Hello World!..."
+  Start: "...世界 Unicode"
+  Middle: "Hello ...nicode"
+
+Padding:
+  Left: "          Hello"
+  Right: "Hello          "
+  Center: "     Hello     "
+
+Text Wrapping:
+Original: This is a very long text that needs to be wrapped to fit within a specific width constraint for better readability.
+Wrapped:
+This is a very long text that needs to
+be wrapped to fit within a specific
+width constraint for better readability.
+
+────────────────────────────────────────────────────────────
+
+[1m[36m4. Basic Input Methods[0m[0m
+[2mTesting text input, password, and confirmation
+[0m
+Enter your name: 

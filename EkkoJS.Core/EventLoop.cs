@@ -8,6 +8,7 @@ public class EventLoop : IDisposable
     private readonly Thread _eventLoopThread;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private bool _disposed;
+    private int _pendingTasks = 0;
 
     public EventLoop()
     {
@@ -19,6 +20,11 @@ public class EventLoop : IDisposable
         _eventLoopThread.Start();
     }
 
+    public bool HasPendingTasks()
+    {
+        return _pendingTasks > 0 || _taskQueue.Count > 0;
+    }
+
     private void ProcessEventLoop()
     {
         while (!_cancellationTokenSource.Token.IsCancellationRequested)
@@ -27,6 +33,7 @@ public class EventLoop : IDisposable
             {
                 if (_taskQueue.TryTake(out var task, 100, _cancellationTokenSource.Token))
                 {
+                    Interlocked.Decrement(ref _pendingTasks);
                     task.Invoke();
                 }
             }
@@ -47,15 +54,18 @@ public class EventLoop : IDisposable
         
         try
         {
+            Interlocked.Increment(ref _pendingTasks);
             _taskQueue.Add(task, _cancellationTokenSource.Token);
         }
         catch (InvalidOperationException)
         {
             // Queue is completing
+            Interlocked.Decrement(ref _pendingTasks);
         }
         catch (OperationCanceledException)
         {
             // Cancellation requested
+            Interlocked.Decrement(ref _pendingTasks);
         }
     }
 
@@ -77,6 +87,14 @@ public class EventLoop : IDisposable
         });
         
         return tcs.Task;
+    }
+
+    public async Task WaitForPendingTasksAsync(CancellationToken cancellationToken = default)
+    {
+        while (HasPendingTasks() && !cancellationToken.IsCancellationRequested)
+        {
+            await Task.Delay(100, cancellationToken);
+        }
     }
 
     public void Stop()

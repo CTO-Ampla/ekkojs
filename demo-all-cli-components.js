@@ -335,7 +335,8 @@ async function runComprehensiveDemo() {
 console.log(cli.yellow('Starting Complete EkkoJS CLI Demo...'));
 console.log(cli.dim('This demo will showcase ALL implemented CLI components.\n'));
 
-runComprehensiveDemo()
+// Use top-level await to ensure the script waits for completion
+await runComprehensiveDemo()
     .then(() => {
         console.log(cli.green('\n✅ Demo completed successfully!'));
     })
