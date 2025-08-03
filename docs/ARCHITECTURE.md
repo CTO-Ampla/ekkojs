@@ -127,6 +127,8 @@ graph TB
     style V8 fill:#99f,stroke:#333,stroke-width:4px
 ```
 
+![ARCHITECTURE Diagram 1](diagrams/ARCHITECTURE_diagram_1.png)
+
 ## Key Architectural Decisions
 
 ### 1. 100% ES Module System
@@ -200,6 +202,8 @@ sequenceDiagram
     V8-->>JS: Module exports
 ```
 
+![ARCHITECTURE Diagram 2](diagrams/ARCHITECTURE_diagram_2.png)
+
 ## Module Resolution Flow (Target Architecture)
 
 ```mermaid
@@ -233,6 +237,8 @@ flowchart TB
     style DocLoader fill:#9f9,stroke:#333,stroke-width:4px
     style V8 fill:#99f,stroke:#333,stroke-width:2px
 ```
+
+![ARCHITECTURE Diagram 3](diagrams/ARCHITECTURE_diagram_3.png)
 
 ### Correct Architecture - How Protocols Should Work
 
@@ -284,6 +290,8 @@ flowchart LR
     IpcReturn --> AllReturns
 ```
 
+![ARCHITECTURE Diagram 4](diagrams/ARCHITECTURE_diagram_4.png)
+
 ### Protocol Implementation Details
 
 ```mermaid
@@ -332,6 +340,8 @@ flowchart LR
     end
 ```
 
+![ARCHITECTURE Diagram 5](diagrams/ARCHITECTURE_diagram_5.png)
+
 ## Package Build Process
 
 ```mermaid
@@ -352,6 +362,8 @@ flowchart TB
     
     Assembly --> Distribution["Self-contained Package<br/>Ready for Distribution"]
 ```
+
+![ARCHITECTURE Diagram 6](diagrams/ARCHITECTURE_diagram_6.png)
 
 ## Package Assembly Structure
 
@@ -421,6 +433,8 @@ classDiagram
     GeneratedPackageClass ..> CompiledAssembly : compiled into
 ```
 
+![ARCHITECTURE Diagram 7](diagrams/ARCHITECTURE_diagram_7.png)
+
 ### Package Loading and File Access Flow
 
 ```mermaid
@@ -477,6 +491,8 @@ flowchart TB
     end
 ```
 
+![ARCHITECTURE Diagram 8](diagrams/ARCHITECTURE_diagram_8.png)
+
 ### Detailed File Access API
 
 ```mermaid
@@ -516,6 +532,8 @@ sequenceDiagram
     DL-->>JS: ES Module with JavaScript content
 ```
 
+![ARCHITECTURE Diagram 9](diagrams/ARCHITECTURE_diagram_9.png)
+
 ### Virtual File System Implementation
 
 ```mermaid
@@ -545,6 +563,8 @@ classDiagram
 
     VirtualFileSystem --> FileOperations : provides
 ```
+
+![ARCHITECTURE Diagram 10](diagrams/ARCHITECTURE_diagram_10.png)
 
 ### Example Generated Package Class
 

@@ -44,6 +44,7 @@ public class EkkoRuntime : IDisposable
         // Register built-in modules directly with document loader
         documentLoader.RegisterBuiltInModule("fs", new FileSystemModule());
         documentLoader.RegisterBuiltInModule("path", new PathModule());
+        documentLoader.RegisterBuiltInModule("cli", new CliBuiltInModule());
         
         // Initialize TypeScript compiler
         _typeScriptCompiler = new TypeScriptCompiler();

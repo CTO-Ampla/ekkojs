@@ -18,42 +18,42 @@ class Component {
         this.props = props;
         this.state = {};
         this.context = null;
-        
+
         // Hierarchy
         this.parent = null;
         this.children = [];
-        
+
         // Layout
         this.bounds = { x: 0, y: 0, width: 0, height: 0 };
         this.constraints = { minWidth: 0, minHeight: 0, maxWidth: Infinity, maxHeight: Infinity };
         this.margin = { top: 0, right: 0, bottom: 0, left: 0 };
         this.padding = { top: 0, right: 0, bottom: 0, left: 0 };
-        
+
         // Rendering
         this.visible = true;
         this.zIndex = 0;
         this.opacity = 1.0;
         this.isDirty = true;
         this.needsLayout = true;
-        
+
         // Interaction
         this.focusable = false;
         this.focused = false;
         this.enabled = true;
         this.interactive = true;
-        
+
         // Styling
         this.style = {};
         this.computedStyle = {};
-        
+
         // Events
         this.eventHandlers = new Map();
-        
+
         // Lifecycle
         this.mounted = false;
         this.destroyed = false;
     }
-    
+
     // Lifecycle Methods
     mount() {
         if (this.mounted) return;
@@ -63,7 +63,7 @@ class Component {
             child.mount();
         }
     }
-    
+
     unmount() {
         if (!this.mounted) return;
         for (const child of this.children) {
@@ -72,19 +72,19 @@ class Component {
         this.onUnmount();
         this.mounted = false;
     }
-    
+
     destroy() {
         if (this.destroyed) return;
         this.unmount();
         this.onDestroy();
         this.destroyed = true;
     }
-    
+
     // Lifecycle Hooks (to override)
     onMount() { }
     onUnmount() { }
     onDestroy() { }
-    
+
     // State Management
     setState(updates) {
         const oldState = { ...this.state };
@@ -92,9 +92,9 @@ class Component {
         this.onStateChange(oldState, this.state);
         this.markDirty();
     }
-    
+
     onStateChange(oldState, newState) { }
-    
+
     // Property Updates
     setProps(updates) {
         const oldProps = { ...this.props };
@@ -103,9 +103,9 @@ class Component {
         this.markDirty();
         this.markNeedsLayout();
     }
-    
+
     onPropsChange(oldProps, newProps) { }
-    
+
     // Hierarchy Management
     appendChild(child) {
         if (child.parent) {
@@ -119,7 +119,7 @@ class Component {
         this.markDirty();
         this.markNeedsLayout();
     }
-    
+
     insertChild(child, index) {
         if (child.parent) {
             child.parent.removeChild(child);
@@ -132,7 +132,7 @@ class Component {
         this.markDirty();
         this.markNeedsLayout();
     }
-    
+
     removeChild(child) {
         const index = this.children.indexOf(child);
         if (index !== -1) {
@@ -143,13 +143,13 @@ class Component {
             this.markNeedsLayout();
         }
     }
-    
+
     removeAllChildren() {
         for (const child of [...this.children]) {
             this.removeChild(child);
         }
     }
-    
+
     // Layout System
     measure(constraints) {
         // Override in components to return desired size
@@ -158,24 +158,24 @@ class Component {
             height: constraints.minHeight
         };
     }
-    
+
     layout(bounds) {
         this.bounds = { ...bounds };
         this.layoutChildren();
         this.needsLayout = false;
     }
-    
+
     layoutChildren() {
         // Override in container components
     }
-    
+
     markNeedsLayout() {
         this.needsLayout = true;
         if (this.parent) {
             this.parent.markNeedsLayout();
         }
     }
-    
+
     // Rendering System
     markDirty(region = null) {
         this.isDirty = true;
@@ -194,30 +194,30 @@ class Component {
             }
         }
     }
-    
+
     render(buffer, clipRegion = null) {
         if (!this.visible || this.destroyed) return;
-        
+
         // Apply clipping
         const effectiveClip = this.getEffectiveClipRegion(clipRegion);
         if (!effectiveClip) return;
-        
+
         // Render self
         this.draw(buffer, effectiveClip);
-        
+
         // Render children (sorted by z-index)
         const sortedChildren = [...this.children].sort((a, b) => a.zIndex - b.zIndex);
         for (const child of sortedChildren) {
             child.render(buffer, effectiveClip);
         }
-        
+
         this.isDirty = false;
     }
-    
+
     draw(buffer, clipRegion) {
         // Override in concrete components
     }
-    
+
     getEffectiveClipRegion(parentClip) {
         const componentBounds = {
             x: this.bounds.x,
@@ -225,11 +225,11 @@ class Component {
             width: this.bounds.width,
             height: this.bounds.height
         };
-        
+
         if (!parentClip) {
             return componentBounds;
         }
-        
+
         // Calculate intersection
         const x = Math.max(componentBounds.x, parentClip.x);
         const y = Math.max(componentBounds.y, parentClip.y);
@@ -241,11 +241,11 @@ class Component {
             componentBounds.y + componentBounds.height,
             parentClip.y + parentClip.height
         );
-        
+
         if (right <= x || bottom <= y) {
             return null; // No intersection
         }
-        
+
         return {
             x,
             y,
@@ -253,7 +253,7 @@ class Component {
             height: bottom - y
         };
     }
-    
+
     // Event Handling
     on(event, handler) {
         if (!this.eventHandlers.has(event)) {
@@ -261,7 +261,7 @@ class Component {
         }
         this.eventHandlers.get(event).push(handler);
     }
-    
+
     off(event, handler) {
         const handlers = this.eventHandlers.get(event);
         if (handlers) {
@@ -271,7 +271,7 @@ class Component {
             }
         }
     }
-    
+
     emit(event, data) {
         const handlers = this.eventHandlers.get(event);
         if (handlers) {
@@ -280,23 +280,23 @@ class Component {
             }
         }
     }
-    
+
     // Input Handling
     handleKeyPress(key, event) {
         // Override in interactive components
         return false; // Return true if handled
     }
-    
+
     handleMouseEvent(event) {
         // Override in interactive components
         return false; // Return true if handled
     }
-    
+
     // Focus Management
     canFocus() {
         return this.focusable && this.enabled && this.visible;
     }
-    
+
     focus() {
         if (!this.canFocus()) return false;
         this.focused = true;
@@ -304,38 +304,38 @@ class Component {
         this.markDirty();
         return true;
     }
-    
+
     blur() {
         if (!this.focused) return;
         this.focused = false;
         this.onBlur();
         this.markDirty();
     }
-    
+
     onFocus() { }
     onBlur() { }
-    
+
     // Hit Testing
     hitTest(x, y) {
         if (!this.visible || !this.interactive) return null;
-        
+
         // Check bounds
         if (x < this.bounds.x || x >= this.bounds.x + this.bounds.width ||
             y < this.bounds.y || y >= this.bounds.y + this.bounds.height) {
             return null;
         }
-        
+
         // Check children (in reverse z-order)
         const sortedChildren = [...this.children].sort((a, b) => b.zIndex - a.zIndex);
         for (const child of sortedChildren) {
             const hit = child.hitTest(x, y);
             if (hit) return hit;
         }
-        
+
         // Return self if no child was hit
         return this;
     }
-    
+
     // Styling
     computeStyle() {
         // Merge styles from various sources
@@ -347,15 +347,15 @@ class Component {
             ...(this.props.disabled ? this.getDisabledStyle() : {})
         };
     }
-    
+
     getDefaultStyle() {
         return {};
     }
-    
+
     getFocusStyle() {
         return {};
     }
-    
+
     getDisabledStyle() {
         return {
             opacity: 0.5
@@ -377,61 +377,61 @@ class Renderer {
         this.frameCount = 0;
         this.lastRenderTime = 0;
     }
-    
+
     initialize(width, height) {
         this.primaryBuffer = new ScreenBuffer(width, height);
         this.secondaryBuffer = new ScreenBuffer(width, height);
     }
-    
+
     render(rootComponent) {
         const startTime = performance.now();
-        
+
         // Get current buffer
-        const buffer = this.activeBuffer === 'primary' 
-            ? this.primaryBuffer 
+        const buffer = this.activeBuffer === 'primary'
+            ? this.primaryBuffer
             : this.secondaryBuffer;
-        
+
         // Clear dirty regions in buffer
         for (const region of this.dirtyRegions) {
             buffer.clearRegion(region);
         }
-        
+
         // Render component tree
         rootComponent.render(buffer);
-        
+
         // Calculate diff between buffers
         const changes = this.calculateDiff();
-        
+
         // Apply changes to terminal
         this.applyChanges(changes);
-        
+
         // Swap buffers
         this.swapBuffers();
-        
+
         // Update stats
         this.frameCount++;
         this.lastRenderTime = performance.now() - startTime;
-        
+
         // Clear dirty regions
         this.dirtyRegions = [];
     }
-    
+
     calculateDiff() {
         const changes = [];
-        const oldBuffer = this.activeBuffer === 'primary' 
-            ? this.secondaryBuffer 
+        const oldBuffer = this.activeBuffer === 'primary'
+            ? this.secondaryBuffer
             : this.primaryBuffer;
-        const newBuffer = this.activeBuffer === 'primary' 
-            ? this.primaryBuffer 
+        const newBuffer = this.activeBuffer === 'primary'
+            ? this.primaryBuffer
             : this.secondaryBuffer;
-        
+
         // Only check dirty regions for efficiency
         for (const region of this.dirtyRegions) {
             for (let y = region.y; y < region.y + region.height; y++) {
                 for (let x = region.x; x < region.x + region.width; x++) {
                     const oldCell = oldBuffer.getCell(x, y);
                     const newCell = newBuffer.getCell(x, y);
-                    
+
                     if (!this.cellsEqual(oldCell, newCell)) {
                         changes.push({
                             x,
@@ -442,30 +442,30 @@ class Renderer {
                 }
             }
         }
-        
+
         return this.optimizeChanges(changes);
     }
-    
+
     cellsEqual(cell1, cell2) {
         return cell1.char === cell2.char &&
                cell1.fg === cell2.fg &&
                cell1.bg === cell2.bg &&
                cell1.attrs === cell2.attrs;
     }
-    
+
     optimizeChanges(changes) {
         // Group consecutive changes in the same row
         const optimized = [];
         let current = null;
-        
+
         changes.sort((a, b) => {
             if (a.y !== b.y) return a.y - b.y;
             return a.x - b.x;
         });
-        
+
         for (const change of changes) {
-            if (current && 
-                current.y === change.y && 
+            if (current &&
+                current.y === change.y &&
                 current.x + current.cells.length === change.x) {
                 // Extend current group
                 current.cells.push(change.cell);
@@ -481,14 +481,14 @@ class Renderer {
                 };
             }
         }
-        
+
         if (current) {
             optimized.push(current);
         }
-        
+
         return optimized;
     }
-    
+
     applyChanges(changes) {
         for (const change of changes) {
             this.terminal.moveCursor(change.x, change.y);
@@ -497,39 +497,39 @@ class Renderer {
             }
         }
     }
-    
+
     swapBuffers() {
         this.activeBuffer = this.activeBuffer === 'primary' ? 'secondary' : 'primary';
-        
+
         // Copy rendered content to other buffer
-        const source = this.activeBuffer === 'primary' 
-            ? this.secondaryBuffer 
+        const source = this.activeBuffer === 'primary'
+            ? this.secondaryBuffer
             : this.primaryBuffer;
-        const target = this.activeBuffer === 'primary' 
-            ? this.primaryBuffer 
+        const target = this.activeBuffer === 'primary'
+            ? this.primaryBuffer
             : this.secondaryBuffer;
-        
+
         for (const region of this.dirtyRegions) {
             target.copyRegion(source, region);
         }
     }
-    
+
     addDirtyRegion(region) {
         // Merge with existing regions if overlapping
         this.dirtyRegions = this.mergeRegions([...this.dirtyRegions, region]);
     }
-    
+
     mergeRegions(regions) {
         // Implement region merging algorithm
         // This is a simplified version
         if (regions.length <= 1) return regions;
-        
+
         const merged = [];
         const sorted = regions.sort((a, b) => {
             if (a.y !== b.y) return a.y - b.y;
             return a.x - b.x;
         });
-        
+
         let current = sorted[0];
         for (let i = 1; i < sorted.length; i++) {
             const region = sorted[i];
@@ -541,23 +541,23 @@ class Renderer {
             }
         }
         merged.push(current);
-        
+
         return merged;
     }
-    
+
     regionsOverlap(r1, r2) {
         return !(r1.x + r1.width < r2.x ||
                  r2.x + r2.width < r1.x ||
                  r1.y + r1.height < r2.y ||
                  r2.y + r2.height < r1.y);
     }
-    
+
     mergeTwo(r1, r2) {
         const x = Math.min(r1.x, r2.x);
         const y = Math.min(r1.y, r2.y);
         const right = Math.max(r1.x + r1.width, r2.x + r2.width);
         const bottom = Math.max(r1.y + r1.height, r2.y + r2.height);
-        
+
         return {
             x,
             y,
@@ -572,7 +572,7 @@ class ScreenBuffer {
         this.width = width;
         this.height = height;
         this.cells = [];
-        
+
         // Initialize cells
         for (let y = 0; y < height; y++) {
             this.cells[y] = [];
@@ -581,7 +581,7 @@ class ScreenBuffer {
             }
         }
     }
-    
+
     createEmptyCell() {
         return {
             char: ' ',
@@ -590,44 +590,44 @@ class ScreenBuffer {
             attrs: 0
         };
     }
-    
+
     getCell(x, y) {
         if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
             return this.createEmptyCell();
         }
         return this.cells[y][x];
     }
-    
+
     setCell(x, y, char, fg = 'default', bg = 'default', attrs = 0) {
         if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
             return;
         }
-        
+
         const cell = this.cells[y][x];
         cell.char = char;
         cell.fg = fg;
         cell.bg = bg;
         cell.attrs = attrs;
     }
-    
+
     drawText(x, y, text, style = {}) {
         const { fg = 'default', bg = 'default', attrs = 0 } = style;
-        
+
         for (let i = 0; i < text.length; i++) {
             this.setCell(x + i, y, text[i], fg, bg, attrs);
         }
     }
-    
+
     fillRect(x, y, width, height, char = ' ', style = {}) {
         const { fg = 'default', bg = 'default', attrs = 0 } = style;
-        
+
         for (let dy = 0; dy < height; dy++) {
             for (let dx = 0; dx < width; dx++) {
                 this.setCell(x + dx, y + dy, char, fg, bg, attrs);
             }
         }
     }
-    
+
     drawBox(x, y, width, height, style = {}) {
         const {
             borderStyle = 'single',
@@ -635,28 +635,28 @@ class ScreenBuffer {
             bg = 'default',
             attrs = 0
         } = style;
-        
+
         const chars = this.getBoxChars(borderStyle);
-        
+
         // Corners
         this.setCell(x, y, chars.topLeft, fg, bg, attrs);
         this.setCell(x + width - 1, y, chars.topRight, fg, bg, attrs);
         this.setCell(x, y + height - 1, chars.bottomLeft, fg, bg, attrs);
         this.setCell(x + width - 1, y + height - 1, chars.bottomRight, fg, bg, attrs);
-        
+
         // Horizontal lines
         for (let i = 1; i < width - 1; i++) {
             this.setCell(x + i, y, chars.horizontal, fg, bg, attrs);
             this.setCell(x + i, y + height - 1, chars.horizontal, fg, bg, attrs);
         }
-        
+
         // Vertical lines
         for (let i = 1; i < height - 1; i++) {
             this.setCell(x, y + i, chars.vertical, fg, bg, attrs);
             this.setCell(x + width - 1, y + i, chars.vertical, fg, bg, attrs);
         }
     }
-    
+
     getBoxChars(style) {
         const styles = {
             single: {
@@ -692,14 +692,14 @@ class ScreenBuffer {
                 bottomRight: '┛'
             }
         };
-        
+
         return styles[style] || styles.single;
     }
-    
+
     clearRegion(region) {
         this.fillRect(region.x, region.y, region.width, region.height);
     }
-    
+
     copyRegion(source, region) {
         for (let y = 0; y < region.height; y++) {
             for (let x = 0; x < region.width; x++) {
@@ -721,7 +721,7 @@ class Layout extends Component {
     layoutChildren() {
         // Override in specific layouts
     }
-    
+
     getChildConstraints(child, availableSpace) {
         // Override to provide constraints to children
         return {
@@ -743,13 +743,13 @@ class FlexLayout extends Layout {
         this.justifyContent = props.justifyContent || 'flex-start';
         this.wrap = props.wrap || 'nowrap';
     }
-    
+
     measure(constraints) {
         let totalMainSize = 0;
         let maxCrossSize = 0;
-        
+
         const isHorizontal = this.direction === 'horizontal';
-        
+
         // Measure children
         for (let i = 0; i < this.children.length; i++) {
             const child = this.children[i];
@@ -759,9 +759,9 @@ class FlexLayout extends Layout {
                 maxWidth: isHorizontal ? Infinity : constraints.maxWidth,
                 maxHeight: isHorizontal ? constraints.maxHeight : Infinity
             };
-            
+
             const childSize = child.measure(childConstraints);
-            
+
             if (isHorizontal) {
                 totalMainSize += childSize.width;
                 maxCrossSize = Math.max(maxCrossSize, childSize.height);
@@ -769,31 +769,31 @@ class FlexLayout extends Layout {
                 totalMainSize += childSize.height;
                 maxCrossSize = Math.max(maxCrossSize, childSize.width);
             }
-            
+
             if (i < this.children.length - 1) {
                 totalMainSize += this.gap;
             }
         }
-        
+
         return {
             width: isHorizontal ? totalMainSize : maxCrossSize,
             height: isHorizontal ? maxCrossSize : totalMainSize
         };
     }
-    
+
     layoutChildren() {
         const { x, y, width, height } = this.bounds;
         const isHorizontal = this.direction === 'horizontal';
-        
+
         // Calculate flex properties
         let totalFlex = 0;
         let totalFixed = 0;
         const childSizes = [];
-        
+
         // First pass: measure non-flex items
         for (const child of this.children) {
             const flex = child.props.flex || 0;
-            
+
             if (flex === 0) {
                 const constraints = {
                     minWidth: 0,
@@ -801,10 +801,10 @@ class FlexLayout extends Layout {
                     maxWidth: isHorizontal ? Infinity : width,
                     maxHeight: isHorizontal ? height : Infinity
                 };
-                
+
                 const size = child.measure(constraints);
                 childSizes.push(size);
-                
+
                 if (isHorizontal) {
                     totalFixed += size.width;
                 } else {
@@ -815,20 +815,20 @@ class FlexLayout extends Layout {
                 childSizes.push(null);
             }
         }
-        
+
         // Calculate remaining space
         const totalGap = this.gap * (this.children.length - 1);
         const availableSpace = (isHorizontal ? width : height) - totalFixed - totalGap;
         const flexUnit = totalFlex > 0 ? availableSpace / totalFlex : 0;
-        
+
         // Second pass: calculate flex item sizes
         for (let i = 0; i < this.children.length; i++) {
             const child = this.children[i];
             const flex = child.props.flex || 0;
-            
+
             if (flex > 0 && !childSizes[i]) {
                 const flexSize = flex * flexUnit;
-                
+
                 if (isHorizontal) {
                     childSizes[i] = {
                         width: flexSize,
@@ -842,17 +842,17 @@ class FlexLayout extends Layout {
                 }
             }
         }
-        
+
         // Layout children
         let mainOffset = 0;
-        
+
         // Handle justifyContent
         const totalMainSize = childSizes.reduce((sum, size) => {
             return sum + (isHorizontal ? size.width : size.height);
         }, 0) + totalGap;
-        
+
         const freeSpace = (isHorizontal ? width : height) - totalMainSize;
-        
+
         switch (this.justifyContent) {
             case 'center':
                 mainOffset = freeSpace / 2;
@@ -867,20 +867,20 @@ class FlexLayout extends Layout {
                 mainOffset = freeSpace / (this.children.length * 2);
                 break;
         }
-        
+
         // Position children
         for (let i = 0; i < this.children.length; i++) {
             const child = this.children[i];
             const size = childSizes[i];
-            
+
             let childX = x;
             let childY = y;
             let childWidth = size.width;
             let childHeight = size.height;
-            
+
             if (isHorizontal) {
                 childX += mainOffset;
-                
+
                 // Handle alignItems
                 switch (this.alignItems) {
                     case 'center':
@@ -895,7 +895,7 @@ class FlexLayout extends Layout {
                 }
             } else {
                 childY += mainOffset;
-                
+
                 // Handle alignItems
                 switch (this.alignItems) {
                     case 'center':
@@ -909,21 +909,21 @@ class FlexLayout extends Layout {
                         break;
                 }
             }
-            
+
             child.layout({
                 x: childX,
                 y: childY,
                 width: childWidth,
                 height: childHeight
             });
-            
+
             // Update offset
             if (isHorizontal) {
                 mainOffset += childWidth + this.gap;
             } else {
                 mainOffset += childHeight + this.gap;
             }
-            
+
             // Handle space-between
             if (this.justifyContent === 'space-between' && i < this.children.length - 1) {
                 const spacing = freeSpace / (this.children.length - 1);
@@ -943,26 +943,26 @@ class GridLayout extends Layout {
         this.columnGap = props.columnGap || this.gap;
         this.rowGap = props.rowGap || this.gap;
     }
-    
+
     layoutChildren() {
         const { x, y, width, height } = this.bounds;
-        
+
         // Calculate cell dimensions
         const cellWidth = (width - (this.columns - 1) * this.columnGap) / this.columns;
         const rows = this.rows || Math.ceil(this.children.length / this.columns);
-        const cellHeight = this.rows > 0 
+        const cellHeight = this.rows > 0
             ? (height - (rows - 1) * this.rowGap) / rows
             : 0; // Auto height
-        
+
         // Layout children
         for (let i = 0; i < this.children.length; i++) {
             const child = this.children[i];
             const col = i % this.columns;
             const row = Math.floor(i / this.columns);
-            
+
             const childX = x + col * (cellWidth + this.columnGap);
             const childY = y + row * (cellHeight + this.rowGap);
-            
+
             child.layout({
                 x: childX,
                 y: childY,
@@ -979,19 +979,19 @@ class StackLayout extends Layout {
         super(props);
         this.alignment = props.alignment || 'center';
     }
-    
+
     layoutChildren() {
         const { x, y, width, height } = this.bounds;
-        
+
         for (const child of this.children) {
             const childSize = child.measure({
                 maxWidth: width,
                 maxHeight: height
             });
-            
+
             let childX = x;
             let childY = y;
-            
+
             // Handle alignment
             switch (this.alignment) {
                 case 'top-left':
@@ -1026,7 +1026,7 @@ class StackLayout extends Layout {
                     childY += height - childSize.height;
                     break;
             }
-            
+
             child.layout({
                 x: childX,
                 y: childY,
@@ -1050,32 +1050,32 @@ class Label extends Component {
         this.wrap = props.wrap || false;
         this.truncate = props.truncate || false;
     }
-    
+
     measure(constraints) {
-        const lines = this.wrap 
+        const lines = this.wrap
             ? this.wrapText(this.text, constraints.maxWidth)
             : [this.text];
-        
+
         const width = Math.max(...lines.map(line => line.length));
         const height = lines.length;
-        
+
         return {
             width: Math.min(width, constraints.maxWidth),
             height: Math.min(height, constraints.maxHeight)
         };
     }
-    
+
     draw(buffer, clipRegion) {
         const { x, y, width, height } = this.bounds;
         const style = this.computedStyle;
-        
-        const lines = this.wrap 
+
+        const lines = this.wrap
             ? this.wrapText(this.text, width)
             : [this.text];
-        
+
         for (let i = 0; i < Math.min(lines.length, height); i++) {
             let line = lines[i];
-            
+
             // Truncate if needed
             if (line.length > width) {
                 if (this.truncate) {
@@ -1084,7 +1084,7 @@ class Label extends Component {
                     line = line.substring(0, width);
                 }
             }
-            
+
             // Calculate alignment
             let textX = x;
             if (this.align === 'center') {
@@ -1092,16 +1092,16 @@ class Label extends Component {
             } else if (this.align === 'right') {
                 textX += width - line.length;
             }
-            
+
             buffer.drawText(textX, y + i, line, style);
         }
     }
-    
+
     wrapText(text, maxWidth) {
         const words = text.split(' ');
         const lines = [];
         let currentLine = '';
-        
+
         for (const word of words) {
             if (currentLine.length + word.length + 1 <= maxWidth) {
                 currentLine += (currentLine ? ' ' : '') + word;
@@ -1110,7 +1110,7 @@ class Label extends Component {
                 currentLine = word;
             }
         }
-        
+
         if (currentLine) lines.push(currentLine);
         return lines;
     }
@@ -1125,19 +1125,19 @@ class TextInput extends Component {
         this.maxLength = props.maxLength || Infinity;
         this.mask = props.mask || null;
         this.validator = props.validator || null;
-        
+
         this.cursorPosition = this.value.length;
         this.selectionStart = -1;
         this.selectionEnd = -1;
         this.scrollOffset = 0;
-        
+
         this.focusable = true;
     }
-    
+
     draw(buffer, clipRegion) {
         const { x, y, width, height } = this.bounds;
         const style = this.computedStyle;
-        
+
         // Draw border
         if (style.border) {
             buffer.drawBox(x, y, width, height, {
@@ -1145,39 +1145,39 @@ class TextInput extends Component {
                 fg: this.focused ? style.focusBorderColor : style.borderColor
             });
         }
-        
+
         // Calculate text area
         const textX = x + (style.border ? 1 : 0);
         const textY = y + (style.border ? 1 : 0);
         const textWidth = width - (style.border ? 2 : 0);
-        
+
         // Prepare text
         let displayText = this.value || this.placeholder;
         let textStyle = { ...style };
-        
+
         if (!this.value && this.placeholder) {
             textStyle.fg = style.placeholderColor || 'gray';
         }
-        
+
         // Apply mask
         if (this.mask && this.value) {
             displayText = this.mask.repeat(this.value.length);
         }
-        
+
         // Handle scrolling
         if (this.cursorPosition < this.scrollOffset) {
             this.scrollOffset = this.cursorPosition;
         } else if (this.cursorPosition >= this.scrollOffset + textWidth) {
             this.scrollOffset = this.cursorPosition - textWidth + 1;
         }
-        
+
         // Draw text
         const visibleText = displayText.substring(
             this.scrollOffset,
             this.scrollOffset + textWidth
         );
         buffer.drawText(textX, textY, visibleText, textStyle);
-        
+
         // Draw cursor
         if (this.focused && !this.mask) {
             const cursorX = textX + this.cursorPosition - this.scrollOffset;
@@ -1185,85 +1185,85 @@ class TextInput extends Component {
                 buffer.setCell(cursorX, textY, '│', style.cursorColor || 'white');
             }
         }
-        
+
         // Draw selection
         if (this.selectionStart !== -1 && this.selectionEnd !== -1) {
             const start = Math.max(this.selectionStart - this.scrollOffset, 0);
             const end = Math.min(this.selectionEnd - this.scrollOffset, textWidth);
-            
+
             for (let i = start; i < end; i++) {
                 const char = visibleText[i] || ' ';
-                buffer.setCell(textX + i, textY, char, 
+                buffer.setCell(textX + i, textY, char,
                     style.selectionFg || 'black',
                     style.selectionBg || 'white'
                 );
             }
         }
     }
-    
+
     handleKeyPress(key, event) {
         if (!this.focused || !this.enabled) return false;
-        
+
         // Handle special keys
         switch (key) {
             case 'left':
                 this.moveCursor(-1, event.shift);
                 return true;
-                
+
             case 'right':
                 this.moveCursor(1, event.shift);
                 return true;
-                
+
             case 'home':
                 this.moveCursor(-this.cursorPosition, event.shift);
                 return true;
-                
+
             case 'end':
                 this.moveCursor(this.value.length - this.cursorPosition, event.shift);
                 return true;
-                
+
             case 'backspace':
                 this.deleteBackward();
                 return true;
-                
+
             case 'delete':
                 this.deleteForward();
                 return true;
-                
+
             case 'enter':
                 this.emit('submit', this.value);
                 return true;
         }
-        
+
         // Handle character input
         if (key.length === 1 && this.value.length < this.maxLength) {
             this.insertChar(key);
             return true;
         }
-        
+
         return false;
     }
-    
+
     insertChar(char) {
         if (this.selectionStart !== -1) {
             this.deleteSelection();
         }
-        
-        this.value = 
+
+        this.value =
             this.value.slice(0, this.cursorPosition) +
             char +
             this.value.slice(this.cursorPosition);
-        
+
         this.cursorPosition++;
         this.emit('change', this.value);
         this.markDirty();
     }
-    
+
     deleteBackward() {
         if (this.selectionStart !== -1) {
             this.deleteSelection();
         } else if (this.cursorPosition > 0) {
-            this.value = 
+            this.value =
                 this.value.slice(0, this.cursorPosition - 1) +
                 this.value.slice(this.cursorPosition);
             this.cursorPosition--;
@@ -1271,23 +1271,23 @@ class TextInput extends Component {
             this.markDirty();
         }
     }
-    
+
     deleteForward() {
         if (this.selectionStart !== -1) {
             this.deleteSelection();
         } else if (this.cursorPosition < this.value.length) {
-            this.value = 
+            this.value =
                 this.value.slice(0, this.cursorPosition) +
                 this.value.slice(this.cursorPosition + 1);
             this.emit('change', this.value);
             this.markDirty();
         }
     }
-    
+
     deleteSelection() {
         const start = Math.min(this.selectionStart, this.selectionEnd);
         const end = Math.max(this.selectionStart, this.selectionEnd);
-        
+
         this.value = this.value.slice(0, start) + this.value.slice(end);
         this.cursorPosition = start;
         this.selectionStart = -1;
@@ -1295,12 +1295,12 @@ class TextInput extends Component {
         this.emit('change', this.value);
         this.markDirty();
     }
-    
+
     moveCursor(delta, selecting = false) {
-        const newPosition = Math.max(0, 
+        const newPosition = Math.max(0,
             Math.min(this.value.length, this.cursorPosition + delta)
         );
-        
+
         if (selecting) {
             if (this.selectionStart === -1) {
                 this.selectionStart = this.cursorPosition;
@@ -1312,7 +1312,7 @@ class TextInput extends Component {
             this.selectionStart = -1;
             this.selectionEnd = -1;
         }
-        
+
         this.cursorPosition = newPosition;
         this.markDirty();
     }
@@ -1326,10 +1326,10 @@ class Button extends Component {
         this.onClick = props.onClick || (() => {});
         this.variant = props.variant || 'default';
         this.size = props.size || 'medium';
-        
+
         this.focusable = true;
     }
-    
+
     measure(constraints) {
         const padding = this.getPadding();
         return {
@@ -1337,15 +1337,15 @@ class Button extends Component {
             height: 1 + padding.top + padding.bottom
         };
     }
-    
+
     draw(buffer, clipRegion) {
         const { x, y, width, height } = this.bounds;
         const style = this.getButtonStyle();
         const padding = this.getPadding();
-        
+
         // Draw background
         buffer.fillRect(x, y, width, height, ' ', style);
-        
+
         // Draw border if focused
         if (this.focused) {
             buffer.drawBox(x, y, width, height, {
@@ -1353,46 +1353,46 @@ class Button extends Component {
                 fg: style.focusBorderColor || 'yellow'
             });
         }
-        
+
         // Draw label
         const labelX = x + Math.floor((width - this.label.length) / 2);
         const labelY = y + Math.floor(height / 2);
         buffer.drawText(labelX, labelY, this.label, style);
     }
-    
+
     handleKeyPress(key, event) {
         if (!this.focused || !this.enabled) return false;
-        
+
         if (key === 'enter' || key === ' ') {
             this.press();
             return true;
         }
-        
+
         return false;
     }
-    
+
     handleMouseEvent(event) {
         if (!this.enabled) return false;
-        
+
         if (event.type === 'click') {
             this.press();
             return true;
         }
-        
+
         return false;
     }
-    
+
     press() {
         this.emit('click');
         this.onClick();
-        
+
         // Visual feedback
         this.setState({ pressed: true });
         setTimeout(() => {
             this.setState({ pressed: false });
         }, 100);
     }
-    
+
     getButtonStyle() {
         const baseStyle = this.computedStyle;
         const variantStyles = {
@@ -1401,21 +1401,21 @@ class Button extends Component {
             danger: { fg: 'white', bg: 'red' },
             secondary: { fg: 'black', bg: 'gray' }
         };
-        
+
         return {
             ...baseStyle,
             ...variantStyles[this.variant],
             ...(this.state.pressed ? { bg: 'darkgray' } : {})
         };
     }
-    
+
     getPadding() {
         const sizes = {
             small: { top: 0, right: 2, bottom: 0, left: 2 },
             medium: { top: 1, right: 4, bottom: 1, left: 4 },
             large: { top: 2, right: 6, bottom: 2, left: 6 }
         };
-        
+
         return sizes[this.size];
     }
 }
@@ -1428,18 +1428,18 @@ class List extends Component {
         this.renderItem = props.renderItem || ((item) => item.toString());
         this.onSelect = props.onSelect || (() => {});
         this.multiSelect = props.multiSelect || false;
-        
+
         this.selectedIndex = -1;
         this.selectedIndices = new Set();
         this.scrollOffset = 0;
-        
+
         this.focusable = true;
     }
-    
+
     draw(buffer, clipRegion) {
         const { x, y, width, height } = this.bounds;
         const style = this.computedStyle;
-        
+
         // Draw border
         if (style.border) {
             buffer.drawBox(x, y, width, height, {
@@ -1447,21 +1447,21 @@ class List extends Component {
                 fg: this.focused ? style.focusBorderColor : style.borderColor
             });
         }
-        
+
         // Calculate content area
         const contentX = x + (style.border ? 1 : 0);
         const contentY = y + (style.border ? 1 : 0);
         const contentWidth = width - (style.border ? 2 : 0);
         const contentHeight = height - (style.border ? 2 : 0);
-        
+
         // Draw visible items
         const visibleItems = Math.min(contentHeight, this.items.length - this.scrollOffset);
-        
+
         for (let i = 0; i < visibleItems; i++) {
             const itemIndex = this.scrollOffset + i;
             const item = this.items[itemIndex];
             const itemY = contentY + i;
-            
+
             // Determine item style
             let itemStyle = { ...style };
             if (this.multiSelect && this.selectedIndices.has(itemIndex)) {
@@ -1471,40 +1471,40 @@ class List extends Component {
                 itemStyle.bg = style.selectedBg || 'blue';
                 itemStyle.fg = style.selectedFg || 'white';
             }
-            
+
             // Clear line
             buffer.fillRect(contentX, itemY, contentWidth, 1, ' ', itemStyle);
-            
+
             // Render item
             const itemText = this.renderItem(item, itemIndex);
-            const truncatedText = itemText.length > contentWidth 
+            const truncatedText = itemText.length > contentWidth
                 ? itemText.substring(0, contentWidth - 3) + '...'
                 : itemText;
-            
+
             buffer.drawText(contentX, itemY, truncatedText, itemStyle);
         }
-        
+
         // Draw scrollbar if needed
         if (this.items.length > contentHeight) {
-            this.drawScrollbar(buffer, 
-                x + width - 1, 
-                contentY, 
+            this.drawScrollbar(buffer,
+                x + width - 1,
+                contentY,
                 contentHeight,
                 this.scrollOffset,
                 this.items.length
             );
         }
     }
-    
+
     drawScrollbar(buffer, x, y, height, offset, total) {
         const thumbSize = Math.max(1, Math.floor(height * height / total));
         const thumbPosition = Math.floor((height - thumbSize) * offset / (total - height));
-        
+
         // Draw track
         for (let i = 0; i < height; i++) {
             buffer.setCell(x, y + i, '│', 'gray');
         }
-        
+
         // Draw thumb
         for (let i = 0; i < thumbSize; i++) {
             if (y + thumbPosition + i < y + height) {
@@ -1512,39 +1512,39 @@ class List extends Component {
             }
         }
     }
-    
+
     handleKeyPress(key, event) {
         if (!this.focused || !this.enabled) return false;
-        
+
         switch (key) {
             case 'up':
                 this.moveSelection(-1);
                 return true;
-                
+
             case 'down':
                 this.moveSelection(1);
                 return true;
-                
+
             case 'home':
                 this.setSelection(0);
                 return true;
-                
+
             case 'end':
                 this.setSelection(this.items.length - 1);
                 return true;
-                
+
             case 'pageup':
                 this.moveSelection(-10);
                 return true;
-                
+
             case 'pagedown':
                 this.moveSelection(10);
                 return true;
-                
+
             case 'enter':
                 this.selectCurrent();
                 return true;
-                
+
             case ' ':
                 if (this.multiSelect) {
                     this.toggleCurrent();
@@ -1552,33 +1552,33 @@ class List extends Component {
                 }
                 break;
         }
-        
+
         return false;
     }
-    
+
     moveSelection(delta) {
-        const newIndex = Math.max(0, 
+        const newIndex = Math.max(0,
             Math.min(this.items.length - 1, this.selectedIndex + delta)
         );
         this.setSelection(newIndex);
     }
-    
+
     setSelection(index) {
         this.selectedIndex = index;
         this.ensureVisible(index);
         this.markDirty();
     }
-    
+
     ensureVisible(index) {
         const contentHeight = this.bounds.height - (this.computedStyle.border ? 2 : 0);
-        
+
         if (index < this.scrollOffset) {
             this.scrollOffset = index;
         } else if (index >= this.scrollOffset + contentHeight) {
             this.scrollOffset = index - contentHeight + 1;
         }
     }
-    
+
     selectCurrent() {
         if (this.selectedIndex >= 0 && this.selectedIndex < this.items.length) {
             const item = this.items[this.selectedIndex];
@@ -1586,7 +1586,7 @@ class List extends Component {
             this.onSelect(item, this.selectedIndex);
         }
     }
-    
+
     toggleCurrent() {
         if (this.selectedIndex >= 0 && this.selectedIndex < this.items.length) {
             if (this.selectedIndices.has(this.selectedIndex)) {
@@ -1609,73 +1609,73 @@ class Table extends Component {
         this.headers = props.headers !== false;
         this.borders = props.borders !== false;
         this.selectable = props.selectable || false;
-        
+
         this.selectedRow = -1;
         this.scrollOffset = 0;
         this.columnWidths = [];
-        
+
         this.focusable = this.selectable;
-        
+
         this.calculateColumnWidths();
     }
-    
+
     calculateColumnWidths() {
         this.columnWidths = this.columns.map(col => col.width || 10);
-        
+
         // Auto-calculate widths if not specified
         for (let i = 0; i < this.columns.length; i++) {
             if (!this.columns[i].width) {
                 let maxWidth = this.columns[i].label?.length || 0;
-                
+
                 for (const row of this.data) {
                     const value = this.getCellValue(row, this.columns[i]);
                     maxWidth = Math.max(maxWidth, value.toString().length);
                 }
-                
+
                 this.columnWidths[i] = Math.min(maxWidth + 2, 30);
             }
         }
     }
-    
+
     draw(buffer, clipRegion) {
         const { x, y, width, height } = this.bounds;
         const style = this.computedStyle;
-        
+
         let currentY = y;
         let contentHeight = height;
-        
+
         // Draw header
         if (this.headers) {
             this.drawHeader(buffer, x, currentY, width);
             currentY += this.borders ? 3 : 1;
             contentHeight -= this.borders ? 3 : 1;
         }
-        
+
         // Draw rows
         const visibleRows = Math.min(
             contentHeight - (this.borders ? 1 : 0),
             this.data.length - this.scrollOffset
         );
-        
+
         for (let i = 0; i < visibleRows; i++) {
             const rowIndex = this.scrollOffset + i;
             const row = this.data[rowIndex];
-            
+
             this.drawRow(buffer, x, currentY, width, row, rowIndex);
             currentY += 1;
-            
+
             if (this.borders && i < visibleRows - 1) {
                 this.drawRowSeparator(buffer, x, currentY, width);
                 currentY += 1;
             }
         }
-        
+
         // Draw bottom border
         if (this.borders) {
             this.drawBottomBorder(buffer, x, currentY, width);
         }
     }
-    
+
     drawHeader(buffer, x, y, width) {
         const style = {
             ...this.computedStyle,
@@ -1683,57 +1683,57 @@ class Table extends Component {
             bg: this.computedStyle.headerBg || 'blue',
             attrs: 1 // bold
         };
-        
+
         // Top border
         if (this.borders) {
             buffer.setCell(x, y, '┌');
             let currentX = x + 1;
-            
+
             for (let i = 0; i < this.columns.length; i++) {
                 const colWidth = this.columnWidths[i];
                 for (let j = 0; j < colWidth; j++) {
                     buffer.setCell(currentX++, y, '─');
                 }
-                
+
                 if (i < this.columns.length - 1) {
                     buffer.setCell(currentX++, y, '┬');
                 }
             }
-            
+
             buffer.setCell(currentX, y, '┐');
             y++;
         }
-        
+
         // Header content
         let currentX = x + (this.borders ? 1 : 0);
-        
+
         for (let i = 0; i < this.columns.length; i++) {
             const col = this.columns[i];
             const colWidth = this.columnWidths[i];
-            
+
             buffer.fillRect(currentX, y, colWidth, 1, ' ', style);
-            
+
             const label = col.label || col.key;
             const truncated = label.length > colWidth - 2
                 ? label.substring(0, colWidth - 5) + '...'
                 : label;
-            
+
             const labelX = currentX + Math.floor((colWidth - truncated.length) / 2);
             buffer.drawText(labelX, y, truncated, style);
-            
+
             currentX += colWidth;
-            
+
             if (this.borders && i < this.columns.length - 1) {
                 buffer.setCell(currentX, y, '│');
                 currentX++;
             }
         }
-        
+
         if (this.borders) {
             buffer.setCell(currentX, y, '│');
         }
     }
-    
+
     drawRow(buffer, x, y, width, row, rowIndex) {
         const isSelected = this.selectable && rowIndex === this.selectedRow;
         const style = {
@@ -1741,21 +1741,21 @@ class Table extends Component {
             bg: isSelected ? (this.computedStyle.selectedBg || 'blue') : this.computedStyle.bg,
             fg: isSelected ? (this.computedStyle.selectedFg || 'white') : this.computedStyle.fg
         };
-        
+
         let currentX = x + (this.borders ? 1 : 0);
-        
+
         for (let i = 0; i < this.columns.length; i++) {
             const col = this.columns[i];
             const colWidth = this.columnWidths[i];
-            
+
             buffer.fillRect(currentX, y, colWidth, 1, ' ', style);
-            
+
             const value = this.getCellValue(row, col);
             const formatted = col.format ? col.format(value) : value.toString();
             const truncated = formatted.length > colWidth - 2
                 ? formatted.substring(0, colWidth - 5) + '...'
                 : formatted;
-            
+
             // Align text
             let textX = currentX + 1;
             if (col.align === 'center') {
@@ -1763,118 +1763,118 @@ class Table extends Component {
             } else if (col.align === 'right') {
                 textX = currentX + colWidth - truncated.length - 1;
             }
-            
+
             buffer.drawText(textX, y, truncated, style);
-            
+
             currentX += colWidth;
-            
+
             if (this.borders && i < this.columns.length - 1) {
                 buffer.setCell(currentX, y, '│', this.computedStyle);
                 currentX++;
             }
         }
-        
+
         if (this.borders) {
             buffer.setCell(x, y, '│', this.computedStyle);
             buffer.setCell(currentX, y, '│', this.computedStyle);
         }
     }
-    
+
     drawRowSeparator(buffer, x, y, width) {
         buffer.setCell(x, y, '├');
         let currentX = x + 1;
-        
+
         for (let i = 0; i < this.columns.length; i++) {
             const colWidth = this.columnWidths[i];
             for (let j = 0; j < colWidth; j++) {
                 buffer.setCell(currentX++, y, '─');
             }
-            
+
             if (i < this.columns.length - 1) {
                 buffer.setCell(currentX++, y, '┼');
             }
         }
-        
+
         buffer.setCell(currentX, y, '┤');
     }
-    
+
     drawBottomBorder(buffer, x, y, width) {
         buffer.setCell(x, y, '└');
         let currentX = x + 1;
-        
+
         for (let i = 0; i < this.columns.length; i++) {
             const colWidth = this.columnWidths[i];
             for (let j = 0; j < colWidth; j++) {
                 buffer.setCell(currentX++, y, '─');
             }
-            
+
             if (i < this.columns.length - 1) {
                 buffer.setCell(currentX++, y, '┴');
             }
         }
-        
+
         buffer.setCell(currentX, y, '┘');
     }
-    
+
     getCellValue(row, column) {
         if (column.getValue) {
             return column.getValue(row);
         }
         return row[column.key];
     }
-    
+
     handleKeyPress(key, event) {
         if (!this.focused || !this.enabled || !this.selectable) return false;
-        
+
         switch (key) {
             case 'up':
                 this.moveSelection(-1);
                 return true;
-                
+
             case 'down':
                 this.moveSelection(1);
                 return true;
-                
+
             case 'home':
                 this.setSelection(0);
                 return true;
-                
+
             case 'end':
                 this.setSelection(this.data.length - 1);
                 return true;
-                
+
             case 'enter':
                 this.selectCurrent();
                 return true;
         }
-        
+
         return false;
     }
-    
+
     moveSelection(delta) {
-        const newIndex = Math.max(0, 
+        const newIndex = Math.max(0,
             Math.min(this.data.length - 1, this.selectedRow + delta)
         );
         this.setSelection(newIndex);
     }
-    
+
     setSelection(index) {
         this.selectedRow = index;
         this.ensureVisible(index);
         this.markDirty();
     }
-    
+
     ensureVisible(index) {
         const headerHeight = this.headers ? (this.borders ? 3 : 1) : 0;
         const contentHeight = this.bounds.height - headerHeight - (this.borders ? 1 : 0);
-        
+
         if (index < this.scrollOffset) {
             this.scrollOffset = index;
         } else if (index >= this.scrollOffset + contentHeight) {
             this.scrollOffset = index - contentHeight + 1;
         }
     }
-    
+
     selectCurrent() {
         if (this.selectedRow >= 0 && this.selectedRow < this.data.length) {
             const row = this.data[this.selectedRow];
@@ -1894,11 +1894,11 @@ class EventDispatcher {
         this.focusManager = null;
         this.captureComponent = null;
     }
-    
+
     setFocusManager(focusManager) {
         this.focusManager = focusManager;
     }
-    
+
     // Keyboard Events
     dispatchKeyEvent(event) {
         // Check capture
@@ -1907,13 +1907,13 @@ class EventDispatcher {
                 return;
             }
         }
-        
+
         // Check focused component
         const focused = this.focusManager?.getCurrentFocus();
         if (focused && focused.handleKeyPress(event.key, event)) {
             return;
         }
-        
+
         // Bubble up from focused
         let component = focused?.parent;
         while (component) {
@@ -1922,7 +1922,7 @@ class EventDispatcher {
             }
             component = component.parent;
         }
-        
+
         // Global handlers
         const handlers = this.keyHandlers.get(event.key) || [];
         for (const handler of handlers) {
@@ -1931,14 +1931,14 @@ class EventDispatcher {
             }
         }
     }
-    
+
     onKey(key, handler) {
         if (!this.keyHandlers.has(key)) {
             this.keyHandlers.set(key, []);
         }
         this.keyHandlers.get(key).push(handler);
     }
-    
+
     offKey(key, handler) {
         const handlers = this.keyHandlers.get(key);
         if (handlers) {
@@ -1948,24 +1948,24 @@ class EventDispatcher {
             }
         }
     }
-    
+
     // Mouse Events
     dispatchMouseEvent(event) {
         // Find component at position
         const target = this.findComponentAt(event.x, event.y);
-        
+
         if (event.type === 'mousedown') {
             // Handle focus change
             if (target && target.focusable) {
                 this.focusManager?.setFocus(target);
             }
         }
-        
+
         // Dispatch to target
         if (target && target.handleMouseEvent(event)) {
             return;
         }
-        
+
         // Bubble up
         let component = target?.parent;
         while (component) {
@@ -1975,22 +1975,22 @@ class EventDispatcher {
             component = component.parent;
         }
     }
-    
+
     findComponentAt(x, y, root = null) {
         if (!root) {
             root = this.focusManager?.root;
             if (!root) return null;
         }
-        
+
         const hit = root.hitTest(x, y);
         return hit;
     }
-    
+
     // Capture
     setCapture(component) {
         this.captureComponent = component;
     }
-    
+
     releaseCapture() {
         this.captureComponent = null;
     }
@@ -2002,86 +2002,86 @@ class FocusManager {
         this.focusableComponents = [];
         this.currentFocus = null;
         this.focusHistory = [];
-        
+
         this.buildFocusableList();
     }
-    
+
     buildFocusableList() {
         this.focusableComponents = [];
         this.collectFocusable(this.root);
     }
-    
+
     collectFocusable(component) {
         if (component.canFocus()) {
             this.focusableComponents.push(component);
         }
-        
+
         for (const child of component.children) {
             this.collectFocusable(child);
         }
     }
-    
+
     getCurrentFocus() {
         return this.currentFocus;
     }
-    
+
     setFocus(component) {
         if (component === this.currentFocus) return;
-        
+
         if (this.currentFocus) {
             this.currentFocus.blur();
             this.focusHistory.push(this.currentFocus);
         }
-        
+
         this.currentFocus = component;
-        
+
         if (component) {
             component.focus();
         }
     }
-    
+
     focusNext() {
         this.buildFocusableList();
-        
+
         if (this.focusableComponents.length === 0) return;
-        
+
         let index = -1;
         if (this.currentFocus) {
             index = this.focusableComponents.indexOf(this.currentFocus);
         }
-        
+
         index = (index + 1) % this.focusableComponents.length;
         this.setFocus(this.focusableComponents[index]);
     }
-    
+
     focusPrevious() {
         this.buildFocusableList();
-        
+
         if (this.focusableComponents.length === 0) return;
-        
+
         let index = 0;
         if (this.currentFocus) {
             index = this.focusableComponents.indexOf(this.currentFocus);
         }
-        
+
         index = (index - 1 + this.focusableComponents.length) % this.focusableComponents.length;
         this.setFocus(this.focusableComponents[index]);
     }
-    
+
     focusFirst() {
         this.buildFocusableList();
         if (this.focusableComponents.length > 0) {
             this.setFocus(this.focusableComponents[0]);
         }
     }
-    
+
     focusLast() {
         this.buildFocusableList();
         if (this.focusableComponents.length > 0) {
             this.setFocus(this.focusableComponents[this.focusableComponents.length - 1]);
         }
     }
-    
+
     restoreFocus() {
         if (this.focusHistory.length > 0) {
             const previous = this.focusHistory.pop();
@@ -2099,38 +2099,38 @@ class Application {
         this.title = options.title || 'TUI Application';
         this.theme = options.theme || 'default';
         this.fps = options.fps || 60;
-        
+
         this.terminal = new Terminal();
         this.renderer = new Renderer(this.terminal);
         this.root = new Component();
         this.focusManager = new FocusManager(this.root);
         this.eventDispatcher = new EventDispatcher();
         this.eventDispatcher.setFocusManager(this.focusManager);
-        
+
         this.running = false;
         this.frameTime = 1000 / this.fps;
         this.lastFrameTime = 0;
         this.animationFrameId = null;
-        
+
         this.setupEventHandlers();
     }
-    
+
     setupEventHandlers() {
         // Terminal resize
         this.terminal.on('resize', (size) => {
             this.handleResize(size);
         });
-        
+
         // Keyboard input
         this.terminal.on('key', (key, event) => {
             this.eventDispatcher.dispatchKeyEvent({ key, ...event });
         });
-        
+
         // Mouse input
         this.terminal.on('mouse', (event) => {
             this.eventDispatcher.dispatchMouseEvent(event);
         });
-        
+
         // Global keyboard shortcuts
         this.eventDispatcher.onKey('tab', (event) => {
             if (event.shift) {
@@ -2140,7 +2140,7 @@ class Application {
             }
             return true;
         });
-        
+
         this.eventDispatcher.onKey('escape', (event) => {
             if (this.onEscape) {
                 return this.onEscape();
@@ -2148,87 +2148,87 @@ class Application {
             return false;
         });
     }
-    
+
     mount(component) {
         this.root.appendChild(component);
         component.mount();
         this.layout();
     }
-    
+
     unmount(component) {
         this.root.removeChild(component);
         this.layout();
     }
-    
+
     run() {
         if (this.running) return;
-        
+
         this.running = true;
-        
+
         // Initialize terminal
         this.terminal.initialize();
         this.terminal.enterAlternateScreen();
         this.terminal.hideCursor();
         this.terminal.enableMouse();
-        
+
         // Get initial size
         const size = this.terminal.getSize();
         this.renderer.initialize(size.width, size.height);
-        
+
         // Initial layout
         this.handleResize(size);
-        
+
         // Start render loop
         this.renderLoop();
-        
+
         // Handle exit
         process.on('SIGINT', () => {
             this.stop();
             process.exit(0);
         });
     }
-    
+
     stop() {
         if (!this.running) return;
-        
+
         this.running = false;
-        
+
         // Cancel animation frame
         if (this.animationFrameId) {
             cancelAnimationFrame(this.animationFrameId);
         }
-        
+
         // Restore terminal
         this.terminal.exitAlternateScreen();
         this.terminal.showCursor();
         this.terminal.disableMouse();
         this.terminal.cleanup();
     }
-    
+
     renderLoop() {
         if (!this.running) return;
-        
+
         const now = performance.now();
         const deltaTime = now - this.lastFrameTime;
-        
+
         if (deltaTime >= this.frameTime) {
             this.render();
             this.lastFrameTime = now - (deltaTime % this.frameTime);
         }
-        
+
         this.animationFrameId = requestAnimationFrame(() => this.renderLoop());
     }
-    
+
     render() {
         // Layout if needed
         if (this.root.needsLayout) {
             this.layout();
         }
-        
+
         // Render
         this.renderer.render(this.root);
     }
-    
+
     layout() {
         const size = this.terminal.getSize();
         this.root.layout({
@@ -2238,7 +2238,7 @@ class Application {
             height: size.height
         });
     }
-    
+
     handleResize(size) {
         this.renderer.initialize(size.width, size.height);
         this.layout();
@@ -2260,7 +2260,7 @@ function createApp(options) {
 graph TB
     subgraph "Component System"
         Component[Base Component]
-        
+
         subgraph "Layout Components"
             Layout[Layout Base]
             FlexLayout[Flex Layout]
@@ -2268,7 +2268,7 @@ graph TB
             StackLayout[Stack Layout]
             AbsoluteLayout[Absolute Layout]
         end
-        
+
         subgraph "Widget Components"
             Label[Label]
             TextInput[Text Input]
@@ -2280,7 +2280,7 @@ graph TB
             Checkbox[Checkbox]
             RadioGroup[Radio Group]
         end
-        
+
         subgraph "Container Components"
             Panel[Panel]
             ScrollView[Scroll View]
@@ -2289,13 +2289,13 @@ graph TB
             Window[Window]
         end
     end
-    
+
     Component --> Layout
     Layout --> FlexLayout
     Layout --> GridLayout
     Layout --> StackLayout
     Layout --> AbsoluteLayout
-    
+
     Component --> Label
     Component --> TextInput
     Component --> Button
@@ -2305,19 +2305,18 @@ graph TB
     Component --> Select
     Component --> Checkbox
     Component --> RadioGroup
-    
+
     Component --> Panel
     Component --> ScrollView
     Component --> TabView
     Component --> Modal
     Component --> Window
-    
+
     style Component fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
-![TUI_MODULE_DESIGN Diagram 1](https://mermaid.ink/img/Z3JhcGggVEIKICAgIHN1YmdyYXBoICJDb21wb25lbnQgU3lzdGVtIgogICAgICAgIENvbXBvbmVudFtCYXNlIENvbXBvbmVudF0KICAgICAgICAKICAgICAgICBzdWJncmFwaCAiTGF5b3V0IENvbXBvbmVudHMiCiAgICAgICAgICAgIExheW91dFtMYXlvdXQgQmFzZV0KICAgICAgICAgICAgRmxleExheW91dFtGbGV4IExheW91dF0KICAgICAgICAgICAgR3JpZExheW91dFtHcmlkIExheW91dF0KICAgICAgICAgICAgU3RhY2tMYXlvdXRbU3RhY2sgTGF5b3V0XQogICAgICAgICAgICBBYnNvbHV0ZUxheW91dFtBYnNvbHV0ZSBMYXlvdXRdCiAgICAgICAgZW5kCiAgICAgICAgCiAgICAgICAgc3ViZ3JhcGggIldpZGdldCBDb21wb25lbnRzIgogICAgICAgICAgICBMYWJlbFtMYWJlbF0KICAgICAgICAgICAgVGV4dElucHV0W1RleHQgSW5wdXRdCiAgICAgICAgICAgIEJ1dHRvbltCdXR0b25dCiAgICAgICAgICAgIExpc3RbTGlzdF0KICAgICAgICAgICAgVGFibGVbVGFibGVdCiAgICAgICAgICAgIFByb2dyZXNzQmFyW1Byb2dyZXNzIEJhcl0KICAgICAgICAgICAgU2VsZWN0W1NlbGVjdF0KICAgICAgICAgICAgQ2hlY2tib3hbQ2hlY2tib3hdCiAgICAgICAgICAgIFJhZGlvR3JvdXBbUmFkaW8gR3JvdXBdCiAgICAgICAgZW5kCiAgICAgICAgCiAgICAgICAgc3ViZ3JhcGggIkNvbnRhaW5lciBDb21wb25lbnRzIgogICAgICAgICAgICBQYW5lbFtQYW5lbF0KICAgICAgICAgICAgU2Nyb2xsVmlld1tTY3JvbGwgVmlld10KICAgICAgICAgICAgVGFiVmlld1tUYWIgVmlld10KICAgICAgICAgICAgTW9kYWxbTW9kYWxdCiAgICAgICAgICAgIFdpbmRvd1tXaW5kb3ddCiAgICAgICAgZW5kCiAgICBlbmQKICAgIAogICAgQ29tcG9uZW50IC0tPiBMYXlvdXQKICAgIExheW91dCAtLT4gRmxleExheW91dAogICAgTGF5b3V0IC0tPiBHcmlkTGF5b3V0CiAgICBMYXlvdXQgLS0+IFN0YWNrTGF5b3V0CiAgICBMYXlvdXQgLS0+IEFic29sdXRlTGF5b3V0CiAgICAKICAgIENvbXBvbmVudCAtLT4gTGFiZWwKICAgIENvbXBvbmVudCAtLT4gVGV4dElucHV0CiAgICBDb21wb25lbnQgLS0+IEJ1dHRvbgogICAgQ29tcG9uZW50IC0tPiBMaXN0CiAgICBDb21wb25lbnQgLS0+IFRhYmxlCiAgICBDb21wb25lbnQgLS0+IFByb2dyZXNzQmFyCiAgICBDb21wb25lbnQgLS0+IFNlbGVjdAogICAgQ29tcG9uZW50IC0tPiBDaGVja2JveAogICAgQ29tcG9uZW50IC0tPiBSYWRpb0dyb3VwCiAgICAKICAgIENvbXBvbmVudCAtLT4gUGFuZWwKICAgIENvbXBvbmVudCAtLT4gU2Nyb2xsVmlldwogICAgQ29tcG9uZW50IC0tPiBUYWJWaWV3CiAgICBDb21wb25lbnQgLS0+IE1vZGFsCiAgICBDb21wb25lbnQgLS0+IFdpbmRvdwogICAgCiAgICBzdHlsZSBDb21wb25lbnQgZmlsbDojZjlmLHN0cm9rZTojMzMzLHN0cm9rZS13aWR0aDo0cHg=)
+![TUI_MODULE_DESIGN Diagram 1](diagrams/TUI_MODULE_DESIGN_diagram_1.png)
 
-![Component Hierarchy](https://mermaid.ink/img/Z3JhcGggVEIKICAgIHN1YmdyYXBoICJDb21wb25lbnQgU3lzdGVtIgogICAgICAgIENvbXBvbmVudFtCYXNlIENvbXBvbmVudF0KICAgICAgICAKICAgICAgICBzdWJncmFwaCCAiTGF5b3V0IENvbXBvbmVudHMiCiAgICAgICAgICAgIExheW91dFtMYXlvdXQgQmFzZV0KICAgICAgICAgICAgRmxleExheW91dFtGbGV4IExheW91dF0KICAgICAgICAgICAgR3JpZExheW91dFtHcmlkIExheW91dF0KICAgICAgICAgICAgU3RhY2tMYXlvdXRbU3RhY2sgTGF5b3V0XQogICAgICAgICAgICBBYnNvbHV0ZUxheW91dFtBYnNvbHV0ZSBMYXlvdXRdCiAgICAgICAgZW5kCiAgICAgICAgCiAgICAgICAgc3ViZ3JhcGggIldpZGdldCBDb21wb25lbnRzIgogICAgICAgICAgICBMYWJlbFtMYWJlbF0KICAgICAgICAgICAgVGV4dElucHV0W1RleHQgSW5wdXRdCiAgICAgICAgICAgIEJ1dHRvbltCdXR0b25dCiAgICAgICAgICAgIExpc3RbTGlzdF0KICAgICAgICAgICAgVGFibGVbVGFibGVdCiAgICAgICAgICAgIFByb2dyZXNzQmFyW1Byb2dyZXNzIEJhcl0KICAgICAgICAgICAgU2VsZWN0W1NlbGVjdF0KICAgICAgICAgICAgQ2hlY2tib3hbQ2hlY2tib3hdCiAgICAgICAgICAgIFJhZGlvR3JvdXBbUmFkaW8gR3JvdXBdCiAgICAgICAgZW5kCiAgICAgICAgCiAgICAgICAgc3ViZ3JhcGggIkNvbnRhaW5lciBDb21wb25lbnRzIgogICAgICAgICAgICBQYW5lbFtQYW5lbF0KICAgICAgICAgICAgU2Nyb2xsVmlld1tTY3JvbGwgVmlld10KICAgICAgICAgICAgVGFiVmlld1tUYWIgVmlld10KICAgICAgICAgICAgTW9kYWxbTW9kYWxdCiAgICAgICAgICAgIFdpbmRvd1tXaW5kb3ddCiAgICAgICAgZW5kCiAgICBlbmQKICAgIAogICAgQ29tcG9uZW50IC0tPiBMYXlvdXQKICAgIExheW91dCAtLT4gRmxleExheW91dAogICAgTGF5b3V0IC0tPiBHcmlkTGF5b3V0CiAgICBMYXlvdXQgLS0+IFN0YWNrTGF5b3V0CiAgICBMYXlvdXQgLS0+IEFic29sdXRlTGF5b3V0CiAgICAKICAgIENvbXBvbmVudCAtLT4gTGFiZWwKICAgIENvbXBvbmVudCAtLT4gVGV4dElucHV0CiAgICBDb21wb25lbnQgLS0+IEJ1dHRvbgogICAgQ29tcG9uZW50IC0tPiBMaXN0CiAgICBDb21wb25lbnQgLS0+IFRhYmxlCiAgICBDb21wb25lbnQgLS0+IFByb2dyZXNzQmFyCiAgICBDb21wb25lbnQgLS0+IFNlbGVjdAogICAgQ29tcG9uZW50IC0tPiBDaGVja2JveAogICAgQ29tcG9uZW50IC0tPiBSYWRpb0dyb3VwCiAgICAKICAgIENvbXBvbmVudCAtLT4gUGFuZWwKICAgIENvbXBvbmVudCAtLT4gU2Nyb2xsVmlldwogICAgQ29tcG9uZW50IC0tPiBUYWJWaWV3CiAgICBDb21wb25lbnQgLS0+IE1vZGFsCiAgICBDb21wb25lbnQgLS0+IFdpbmRvdwogICAgCiAgICBzdHlsZSBDb21wb25lbnQgZmlsbDojZjlmLHN0cm9rZTojMzMzLHN0cm9rZS13aWR0aDo0cHg=)
 
 ### Rendering Pipeline
 
@@ -2328,36 +2327,34 @@ sequenceDiagram
     participant Renderer
     participant Buffer as Screen Buffer
     participant Terminal
-    
+
     App->>Root: Check needsLayout
-    
+
     alt Needs Layout
         App->>Root: layout(bounds)
         Root->>Root: layoutChildren()
     end
-    
+
     App->>Renderer: render(root)
-    
+
     Renderer->>Buffer: Clear dirty regions
     Renderer->>Root: render(buffer)
-    
+
     loop For each component
         Root->>Root: draw(buffer)
         Root->>Root: renderChildren(buffer)
     end
-    
+
     Renderer->>Renderer: calculateDiff()
     Renderer->>Renderer: optimizeChanges()
     Renderer->>Terminal: applyChanges()
-    
+
     Terminal->>Terminal: Write to stdout
-    
+
     Renderer->>Renderer: swapBuffers()
 ```
 
-![TUI_MODULE_DESIGN Diagram 2](https://mermaid.ink/img/c2VxdWVuY2VEaWFncmFtCiAgICBwYXJ0aWNpcGFudCBBcHAgYXMgQXBwbGljYXRpb24KICAgIHBhcnRpY2lwYW50IFJvb3QgYXMgUm9vdCBDb21wb25lbnQKICAgIHBhcnRpY2lwYW50IFJlbmRlcmVyCiAgICBwYXJ0aWNpcGFudCBCdWZmZXIgYXMgU2NyZWVuIEJ1ZmZlcgogICAgcGFydGljaXBhbnQgVGVybWluYWwKICAgIAogICAgQXBwLT4+Um9vdDogQ2hlY2sgbmVlZHNMYXlvdXQKICAgIAogICAgYWx0IE5lZWRzIExheW91dAogICAgICAgIEFwcC0+PlJvb3Q6IGxheW91dChib3VuZHMpCiAgICAgICAgUm9vdC0+PlJvb3Q6IGxheW91dENoaWxkcmVuKCkKICAgIGVuZAogICAgCiAgICBBcHAtPj5SZW5kZXJlcjogcmVuZGVyKHJvb3QpCiAgICAKICAgIFJlbmRlcmVyLT4+QnVmZmVyOiBDbGVhciBkaXJ0eSByZWdpb25zCiAgICBSZW5kZXJlci0+PlJvb3Q6IHJlbmRlcihidWZmZXIpCiAgICAKICAgIGxvb3AgRm9yIGVhY2ggY29tcG9uZW50CiAgICAgICAgUm9vdC0+PlJvb3Q6IGRyYXcoYnVmZmVyKQogICAgICAgIFJvb3QtPj5Sb290OiByZW5kZXJDaGlsZHJlbihidWZmZXIpCiAgICBlbmQKICAgIAogICAgUmVuZGVyZXItPj5SZW5kZXJlcjogY2FsY3VsYXRlRGlmZigpCiAgICBSZW5kZXJlci0+PlJlbmRlcmVyOiBvcHRpbWl6ZUNoYW5nZXMoKQogICAgUmVuZGVyZXItPj5UZXJtaW5hbDogYXBwbHlDaGFuZ2VzKCkKICAgIAogICAgVGVybWluYWwtPj5UZXJtaW5hbDogV3JpdGUgdG8gc3Rkb3V0CiAgICAKICAgIFJlbmRlcmVyLT4+UmVuZGVyZXI6IHN3YXBCdWZmZXJzKCk=)
-
-![Rendering Pipeline](https://mermaid.ink/img/c2VxdWVuY2VEaWFncmFtCiAgICBwYXJ0aWNpcGFudCBBcHAgYXMgQXBwbGljYXRpb24KICAgIHBhcnRpY2lwYW50IFJvb3QgYXMgUm9vdCBDb21wb25lbnQKICAgIHBhcnRpY2lwYW50IFJlbmRlcmVyCiAgICBwYXJ0aWNpcGFudCBCdWZmZXIgYXMgU2NyZWVuIEJ1ZmZlcgogICAgcGFydGljaXBhbnQgVGVybWluYWwKICAgIAogICAgQXBwLT4+Um9vdDogQ2hlY2sgbmVlZHNMYXlvdXQKICAgIAogICAgYWx0IE5lZWRzIExheW91dAogICAgICAgIEFwcC0+PlJvb3Q6IGxheW91dChib3VuZHMpCiAgICAgICAgUm9vdC0+PlJvb3Q6IGxheW91dENoaWxkcmVuKCkKICAgIGVuZAogICAgCiAgICBBcHAtPj5SZW5kZXJlcjogcmVuZGVyKHJvb3QpCiAgICAKICAgIFJlbmRlcmVyLT4+QnVmZmVyOiBDbGVhciBkaXJ0eSByZWdpb25zCiAgICBSZW5kZXJlci0+PlJvb3Q6IHJlbmRlcihidWZmZXIpCiAgICAKICAgIGxvb3AgRm9yIGVhY2ggY29tcG9uZW50CiAgICAgICAgUm9vdC0+PlJvb3Q6IGRyYXcoYnVmZmVyKQogICAgICAgIFJvb3QtPj5Sb290OiByZW5kZXJDaGlsZHJlbihidWZmZXIpCiAgICBlbmQKICAgIAogICAgUmVuZGVyZXItPj5SZW5kZXJlcjogY2FsY3VsYXRlRGlmZigpCiAgICBSZW5kZXJlci0+PlJlbmRlcmVyOiBvcHRpbWl6ZUNoYW5nZXMoKQogICAgUmVuZGVyZXItPj5UZXJtaW5hbDogYXBwbHlDaGFuZ2VzKCkKICAgIAogICAgVGVybWluYWwtPj5UZXJtaW5hbDogV3JpdGUgdG8gc3Rkb3V0CiAgICAKICAgIFJlbmRlcmVyLT4+UmVuZGVyZXI6IHN3YXBCdWZmZXJzKCk=)
+![TUI_MODULE_DESIGN Diagram 2](diagrams/TUI_MODULE_DESIGN_diagram_2.png)
 
 ### Event Flow
 
@@ -2368,41 +2365,39 @@ flowchart TB
         Mouse[Mouse Input]
         Resize[Terminal Resize]
     end
-    
+
     subgraph "Event System"
         Terminal[Terminal Handler]
         Dispatcher[Event Dispatcher]
         FocusManager[Focus Manager]
     end
-    
+
     subgraph "Component Tree"
         Root[Root Component]
         Focused[Focused Component]
         Target[Target Component]
         Parent[Parent Component]
     end
-    
+
     Keyboard --> Terminal
     Mouse --> Terminal
     Resize --> Terminal
-    
+
     Terminal --> Dispatcher
-    
+
     Dispatcher --> |"Get focused"| FocusManager
     FocusManager --> Focused
-    
+
     Dispatcher --> |"Mouse events"| Target
     Dispatcher --> |"Key events"| Focused
-    
+
     Focused --> |"Not handled"| Parent
     Target --> |"Not handled"| Parent
-    
+
     Parent --> |"Bubble up"| Root
 ```
 
-![TUI_MODULE_DESIGN Diagram 3](https://mermaid.ink/img/Zmxvd2NoYXJ0IFRCCiAgICBzdWJncmFwaCAiSW5wdXQgU291cmNlcyIKICAgICAgICBLZXlib2FyZFtLZXlib2FyZCBJbnB1dF0KICAgICAgICBNb3VzZVtNb3VzZSBJbnB1dF0KICAgICAgICBSZXNpemVbVGVybWluYWwgUmVzaXplXQogICAgZW5kCiAgICAKICAgIHN1YmdyYXBoICJFdmVudCBTeXN0ZW0iCiAgICAgICAgVGVybWluYWxbVGVybWluYWwgSGFuZGxlcl0KICAgICAgICBEaXNwYXRjaGVyW0V2ZW50IERpc3BhdGNoZXJdCiAgICAgICAgRm9jdXNNYW5hZ2VyW0ZvY3VzIE1hbmFnZXJdCiAgICBlbmQKICAgIAogICAgc3ViZ3JhcGggIkNvbXBvbmVudCBUcmVlIgogICAgICAgIFJvb3RbUm9vdCBDb21wb25lbnRdCiAgICAgICAgRm9jdXNlZFtGb2N1c2VkIENvbXBvbmVudF0KICAgICAgICBUYXJnZXRbVGFyZ2V0IENvbXBvbmVudF0KICAgICAgICBQYXJlbnRbUGFyZW50IENvbXBvbmVudF0KICAgIGVuZAogICAgCiAgICBLZXlib2FyZCAtLT4gVGVybWluYWwKICAgIE1vdXNlIC0tPiBUZXJtaW5hbAogICAgUmVzaXplIC0tPiBUZXJtaW5hbAogICAgCiAgICBUZXJtaW5hbCAtLT4gRGlzcGF0Y2hlcgogICAgCiAgICBEaXNwYXRjaGVyIC0tPiB8IkdldCBmb2N1c2VkInwgRm9jdXNNYW5hZ2VyCiAgICBGb2N1c01hbmFnZXIgLS0+IEZvY3VzZWQKICAgIAogICAgRGlzcGF0Y2hlciAtLT4gfCJNb3VzZSBldmVudHMifCBUYXJnZXQKICAgIERpc3BhdGNoZXIgLS0+IHwiS2V5IGV2ZW50cyJ8IEZvY3VzZWQKICAgIAogICAgRm9jdXNlZCAtLT4gfCJOb3QgaGFuZGxlZCJ8IFBhcmVudAogICAgVGFyZ2V0IC0tPiB8Ik5vdCBoYW5kbGVkInwgUGFyZW50CiAgICAKICAgIFBhcmVudCAtLT4gfCJCdWJibGUgdXAifCBSb290)
-
-![Event Flow](https://mermaid.ink/img/Zmxvd2NoYXJ0IFRCCiAgICBzdWJncmFwaCCAiSW5wdXQgU291cmNlcyIKICAgICAgICBLZXlib2FyZFtLZXlib2FyZCBJbnB1dF0KICAgICAgICBNb3VzZVtNb3VzZSBJbnB1dF0KICAgICAgICBSZXNpemVbVGVybWluYWwgUmVzaXplXQogICAgZW5kCiAgICAKICAgIHN1YmdyYXBoICJFdmVudCBTeXN0ZW0iCiAgICAgICAgVGVybWluYWxbVGVybWluYWwgSGFuZGxlcl0KICAgICAgICBEaXNwYXRjaGVyW0V2ZW50IERpc3BhdGNoZXJdCiAgICAgICAgRm9jdXNNYW5hZ2VyW0ZvY3VzIE1hbmFnZXJdCiAgICBlbmQKICAgIAogICAgc3ViZ3JhcGggIkNvbXBvbmVudCBUcmVlIgogICAgICAgIFJvb3RbUm9vdCBDb21wb25lbnRdCiAgICAgICAgRm9jdXNlZFtGb2N1c2VkIENvbXBvbmVudF0KICAgICAgICBUYXJnZXRbVGFyZ2V0IENvbXBvbmVudF0KICAgICAgICBQYXJlbnRbUGFyZW50IENvbXBvbmVudF0KICAgIGVuZAogICAgCiAgICBLZXlib2FyZCAtLT4gVGVybWluYWwKICAgIE1vdXNlIC0tPiBUZXJtaW5hbAogICAgUmVzaXplIC0tPiBUZXJtaW5hbAogICAgCiAgICBUZXJtaW5hbCAtLT4gRGlzcGF0Y2hlcgogICAgCiAgICBEaXNwYXRjaGVyIC0tPiB8IkdldCBmb2N1c2VkInwgRm9jdXNNYW5hZ2VyCiAgICBGb2N1c01hbmFnZXIgLS0+IEZvY3VzZWQKICAgIAogICAgRGlzcGF0Y2hlciAtLT4gfCJNb3VzZSBldmVudHMifCBUYXJnZXQKICAgIERpc3BhdGNoZXIgLS0+IHwiS2V5IGV2ZW50cyJ8IEZvY3VzZWQKICAgIAogICAgRm9jdXNlZCAtLT4gfCJOb3QgaGFuZGxlZCJ8IFBhcmVudAogICAgVGFyZ2V0IC0tPiB8Ik5vdCBoYW5kbGVkInwgUGFyZW50CiAgICAKICAgIFBhcmVudCAtLT4gfCJCdWJibGUgdXAifCBSb290)
+![TUI_MODULE_DESIGN Diagram 3](diagrams/TUI_MODULE_DESIGN_diagram_3.png)
 
 ### Layout System
 
@@ -2418,13 +2413,13 @@ classDiagram
         +layout(bounds): void
         +layoutChildren(): void
     }
-    
+
     class Layout {
         <<abstract>>
         +layoutChildren(): void
         +getChildConstraints(): Constraints
     }
-    
+
     class FlexLayout {
         +direction: string
         +gap: number
@@ -2432,67 +2427,65 @@ classDiagram
         +justifyContent: string
         +layoutChildren(): void
     }
-    
+
     class GridLayout {
         +columns: number
         +rows: number
         +gap: number
         +layoutChildren(): void
     }
-    
+
     class StackLayout {
         +alignment: string
         +layoutChildren(): void
     }
-    
+
     Component <|-- Layout
     Layout <|-- FlexLayout
     Layout <|-- GridLayout
     Layout <|-- StackLayout
 ```
 
-![TUI_MODULE_DESIGN Diagram 4](https://mermaid.ink/img/Y2xhc3NEaWFncmFtCiAgICBjbGFzcyBDb21wb25lbnQgewogICAgICAgICtib3VuZHM6IEJvdW5kcwogICAgICAgICtjb25zdHJhaW50czogQ29uc3RyYWludHMKICAgICAgICArbWFyZ2luOiBTcGFjaW5nCiAgICAgICAgK3BhZGRpbmc6IFNwYWNpbmcKICAgICAgICArbmVlZHNMYXlvdXQ6IGJvb2xlYW4KICAgICAgICArbWVhc3VyZShjb25zdHJhaW50cyk6IFNpemUKICAgICAgICArbGF5b3V0KGJvdW5kcyk6IHZvaWQKICAgICAgICArbGF5b3V0Q2hpbGRyZW4oKTogdm9pZAogICAgfQogICAgCiAgICBjbGFzcyBMYXlvdXQgewogICAgICAgIDw8YWJzdHJhY3Q+PgogICAgICAgICtsYXlvdXRDaGlsZHJlbigpOiB2b2lkCiAgICAgICAgK2dldENoaWxkQ29uc3RyYWludHMoKTogQ29uc3RyYWludHMKICAgIH0KICAgIAogICAgY2xhc3MgRmxleExheW91dCB7CiAgICAgICAgK2RpcmVjdGlvbjogc3RyaW5nCiAgICAgICAgK2dhcDogbnVtYmVyCiAgICAgICAgK2FsaWduSXRlbXM6IHN0cmluZwogICAgICAgICtqdXN0aWZ5Q29udGVudDogc3RyaW5nCiAgICAgICAgK2xheW91dENoaWxkcmVuKCk6IHZvaWQKICAgIH0KICAgIAogICAgY2xhc3MgR3JpZExheW91dCB7CiAgICAgICAgK2NvbHVtbnM6IG51bWJlcgogICAgICAgICtyb3dzOiBudW1iZXIKICAgICAgICArZ2FwOiBudW1iZXIKICAgICAgICArbGF5b3V0Q2hpbGRyZW4oKTogdm9pZAogICAgfQogICAgCiAgICBjbGFzcyBTdGFja0xheW91dCB7CiAgICAgICAgK2FsaWdubWVudDogc3RyaW5nCiAgICAgICAgK2xheW91dENoaWxkcmVuKCk6IHZvaWQKICAgIH0KICAgIAogICAgQ29tcG9uZW50IDx8LS0gTGF5b3V0CiAgICBMYXlvdXQgPHwtLSBGbGV4TGF5b3V0CiAgICBMYXlvdXQgPHwtLSBHcmlkTGF5b3V0CiAgICBMYXlvdXQgPHwtLSBTdGFja0xheW91dA==)
+![TUI_MODULE_DESIGN Diagram 4](diagrams/TUI_MODULE_DESIGN_diagram_4.png)
 
-![Layout System](https://mermaid.ink/img/Y2xhc3NEaWFncmFtCiAgICBjbGFzcyBDb21wb25lbnQgewogICAgICAgICtib3VuZHM6IEJvdW5kcwogICAgICAgICtjb25zdHJhaW50czogQ29uc3RyYWludHMKICAgICAgICArbWFyZ2luOiBTcGFjaW5nCiAgICAgICAgK3BhZGRpbmc6IFNwYWNpbmcKICAgICAgICArbmVlZHNMYXlvdXQ6IGJvb2xlYW4KICAgICAgICArbWVhc3VyZShjb25zdHJhaW50cyk6IFNpemUKICAgICAgICArKGxheW91dChib3VuZHMpOiB2b2lkCiAgICAgICAgK2xheW91dENoaWxkcmVuKCk6IHZvaWQKICAgIH0KICAgIAogICAgY2xhc3MgTGF5b3V0IHsKICAgICAgICA8PGFic3RyYWN0Pj4KICAgICAgICArZmF5b3V0Q2hpbGRyZW4oKTogdm9pZAogICAgICAgICtnZXRDaGlsZENvbnN0cmFpbnRzKCk6IENvbnN0cmFpbnRzCiAgICB9CiAgICAKICAgIGNsYXNzIEZsZXhMYXlvdXQgewogICAgICAgICtkaXJlY3Rpb246IHN0cmluZwogICAgICAgICtnYXA6IG51bWJlcgogICAgICAgICthbGlnbkl0ZW1zOiBzdHJpbmcKICAgICAgICAranVzdGlmeUNvbnRlbnQ6IHN0cmluZwogICAgICAgICtsYXlvdXRDaGlsZHJlbigpOiB2b2lkCiAgICB9CiAgICAKICAgIGNsYXNzIEdyaWRMYXlvdXQgewogICAgICAgICtjb2x1bW5zOiBudW1iZXIKICAgICAgICArcm93czogbnVtYmVyCiAgICAgICAgK2dhcDogbnVtYmVyCiAgICAgICAgK2xheW91dENoaWxkcmVuKCk6IHZvaWQKICAgIH0KICAgIAogICAgY2xhc3MgU3RhY2tMYXlvdXQgewogICAgICAgICthbGlnbm1lbnQ6IHN0cmluZwogICAgICAgICtsYXlvdXRDaGlsZHJlbigpOiB2b2lkCiAgICB9CiAgICAKICAgIENvbXBvbmVudCA8fC0tIExheW91dAogICAgTGF5b3V0IDx8LS0gRmxleExheW91dAogICAgTGF5b3V0IDx8LS0gR3JpZExheW91dAogICAgTGF5b3V0IDx8LS0gU3RhY2tMYXlvdXQ=)
 
 ### State Management
 
 ```mermaid
 stateDiagram-v2
     [*] --> Created: new Component()
-    
+
     Created --> Mounted: mount()
     Mounted --> Updated: setState()/setProps()
     Updated --> Updated: setState()/setProps()
-    
+
     Mounted --> Focused: focus()
     Focused --> Blurred: blur()
     Blurred --> Focused: focus()
-    
+
     Updated --> Dirty: markDirty()
     Dirty --> Rendering: render()
     Rendering --> Clean: render complete
     Clean --> Dirty: markDirty()
-    
+
     Mounted --> Unmounted: unmount()
     Unmounted --> Destroyed: destroy()
-    
+
     Destroyed --> [*]
-    
+
     note right of Updated
         Component re-renders
         when state or props change
     end note
-    
+
     note left of Dirty
         Dirty regions are tracked
         for efficient rendering
     end note
 ```
 
-![TUI_MODULE_DESIGN Diagram 5](https://mermaid.ink/img/c3RhdGVEaWFncmFtLXYyCiAgICBbKl0gLS0+IENyZWF0ZWQ6IG5ldyBDb21wb25lbnQoKQogICAgCiAgICBDcmVhdGVkIC0tPiBNb3VudGVkOiBtb3VudCgpCiAgICBNb3VudGVkIC0tPiBVcGRhdGVkOiBzZXRTdGF0ZSgpL3NldFByb3BzKCkKICAgIFVwZGF0ZWQgLS0+IFVwZGF0ZWQ6IHNldFN0YXRlKCkvc2V0UHJvcHMoKQogICAgCiAgICBNb3VudGVkIC0tPiBGb2N1c2VkOiBmb2N1cygpCiAgICBGb2N1c2VkIC0tPiBCbHVycmVkOiBibHVyKCkKICAgIEJsdXJyZWQgLS0+IEZvY3VzZWQ6IGZvY3VzKCkKICAgIAogICAgVXBkYXRlZCAtLT4gRGlydHk6IG1hcmtEaXJ0eSgpCiAgICBEaXJ0eSAtLT4gUmVuZGVyaW5nOiByZW5kZXIoKQogICAgUmVuZGVyaW5nIC0tPiBDbGVhbjogcmVuZGVyIGNvbXBsZXRlCiAgICBDbGVhbiAtLT4gRGlydHk6IG1hcmtEaXJ0eSgpCiAgICAKICAgIE1vdW50ZWQgLS0+IFVubW91bnRlZDogdW5tb3VudCgpCiAgICBVbm1vdW50ZWQgLS0+IERlc3Ryb3llZDogZGVzdHJveSgpCiAgICAKICAgIERlc3Ryb3llZCAtLT4gWypdCiAgICAKICAgIG5vdGUgcmlnaHQgb2YgVXBkYXRlZAogICAgICAgIENvbXBvbmVudCByZS1yZW5kZXJzCiAgICAgICAgd2hlbiBzdGF0ZSBvciBwcm9wcyBjaGFuZ2UKICAgIGVuZCBub3RlCiAgICAKICAgIG5vdGUgbGVmdCBvZiBEaXJ0eQogICAgICAgIERpcnR5IHJlZ2lvbnMgYXJlIHRyYWNrZWQKICAgICAgICBmb3IgZWZmaWNpZW50IHJlbmRlcmluZwogICAgZW5kIG5vdGU=)
+![TUI_MODULE_DESIGN Diagram 5](diagrams/TUI_MODULE_DESIGN_diagram_5.png)
 
-![State Management](https://mermaid.ink/img/c3RhdGVEaWFncmFtLXYyCiAgICBbKl0gLS0+IENyZWF0ZWQ6IG5ldyBDb21wb25lbnQoKQogICAgCiAgICBDcmVhdGVkIC0tPiBNb3VudGVkOiBtb3VudCgpCiAgICBNb3VudGVkIC0tPiBVcGRhdGVkOiBzZXRTdGF0ZSgpL3NldFByb3BzKCkKICAgIFVwZGF0ZWQgLS0+IFVwZGF0ZWQ6IHNldFN0YXRlKCkvc2V0UHJvcHMoKQogICAgCiAgICBNb3VudGVkIC0tPiBGb2N1c2VkOiBmb2N1cygpCiAgICBGb2N1c2VkIC0tPiBCbHVycmVkOiBibHVyKCkKICAgIEJsdXJyZWQgLS0+IEZvY3VzZWQ6IGZvY3VzKCkKICAgIAogICAgVXBkYXRlZCAtLT4gRGlydHk6IG1hcmtEaXJ0eSgpCiAgICBEaXJ0eSAtLT4gUmVuZGVyaW5nOiByZW5kZXIoKQogICAgUmVuZGVyaW5nIC0tPiBDbGVhbjogcmVuZGVyIGNvbXBsZXRlCiAgICBDbGVhbiAtLT4gRGlydHk6IG1hcmtEaXJ0eSgpCiAgICAKICAgIE1vdW50ZWQgLS0+IFVubW91bnRlZDogdW5tb3VudCgpCiAgICBVbm1vdW50ZWQgLS0+IERlc3Ryb3llZDogZGVzdHJveSgpCiAgICAKICAgIERlc3Ryb3llZCAtLT4gWypdCiAgICAKICAgIG5vdGUgcmlnaHQgb2YgVXBkYXRlZAogICAgICAgIENvbXBvbmVudCByZS1yZW5kZXJzCiAgICAgICAgd2hlbiBzdGF0ZSBvciBwcm9wcyBjaGFuZ2UKICAgIGVuZCBub3RlCiAgICAKICAgIG5vdGUgbGVmdCBvZiBEaXJ0eQogICAgICAgIERpcnR5IHJlZ2lvbnMgYXJlIHRyYWNrZWQKICAgICAgICBmb3IgZWZmaWNpZW50IHJlbmRlcmluZwogICAgZW5kIG5vdGU=)
 
 ### Buffer Management
 
@@ -2502,40 +2495,38 @@ flowchart LR
         Primary[Primary Buffer]
         Secondary[Secondary Buffer]
     end
-    
+
     subgraph "Rendering Process"
         Clear[Clear Dirty Regions]
         Draw[Draw Components]
         Diff[Calculate Diff]
         Apply[Apply Changes]
     end
-    
+
     subgraph "Optimization"
         Merge[Merge Regions]
         Batch[Batch Updates]
         Minimize[Minimize Redraws]
     end
-    
+
     Primary --> Clear
     Clear --> Draw
     Draw --> Secondary
-    
+
     Primary --> Diff
     Secondary --> Diff
-    
+
     Diff --> Merge
     Merge --> Batch
     Batch --> Apply
-    
+
     Apply --> Terminal[Terminal Output]
-    
+
     Secondary -.->|"Swap"| Primary
     Primary -.->|"Swap"| Secondary
 ```
 
-![TUI_MODULE_DESIGN Diagram 6](https://mermaid.ink/img/Zmxvd2NoYXJ0IExSCiAgICBzdWJncmFwaCAiRG91YmxlIEJ1ZmZlcmluZyIKICAgICAgICBQcmltYXJ5W1ByaW1hcnkgQnVmZmVyXQogICAgICAgIFNlY29uZGFyeVtTZWNvbmRhcnkgQnVmZmVyXQogICAgZW5kCiAgICAKICAgIHN1YmdyYXBoICJSZW5kZXJpbmcgUHJvY2VzcyIKICAgICAgICBDbGVhcltDbGVhciBEaXJ0eSBSZWdpb25zXQogICAgICAgIERyYXdbRHJhdyBDb21wb25lbnRzXQogICAgICAgIERpZmZbQ2FsY3VsYXRlIERpZmZdCiAgICAgICAgQXBwbHlbQXBwbHkgQ2hhbmdlc10KICAgIGVuZAogICAgCiAgICBzdWJncmFwaCAiT3B0aW1pemF0aW9uIgogICAgICAgIE1lcmdlW01lcmdlIFJlZ2lvbnNdCiAgICAgICAgQmF0Y2hbQmF0Y2ggVXBkYXRlc10KICAgICAgICBNaW5pbWl6ZVtNaW5pbWl6ZSBSZWRyYXdzXQogICAgZW5kCiAgICAKICAgIFByaW1hcnkgLS0+IENsZWFyCiAgICBDbGVhciAtLT4gRHJhdwogICAgRHJhdyAtLT4gU2Vjb25kYXJ5CiAgICAKICAgIFByaW1hcnkgLS0+IERpZmYKICAgIFNlY29uZGFyeSAtLT4gRGlmZgogICAgCiAgICBEaWZmIC0tPiBNZXJnZQogICAgTWVyZ2UgLS0+IEJhdGNoCiAgICBCYXRjaCAtLT4gQXBwbHkKICAgIAogICAgQXBwbHkgLS0+IFRlcm1pbmFsW1Rlcm1pbmFsIE91dHB1dF0KICAgIAogICAgU2Vjb25kYXJ5IC0uLT58IlN3YXAifCBQcmltYXJ5CiAgICBQcmltYXJ5IC0uLT58IlN3YXAifCBTZWNvbmRhcnk=)
-
-![Buffer Management](https://mermaid.ink/img/Zmxvd2NoYXJ0IExSCiAgICBzdWJncmFwaCCAiRG91YmxlIEJ1ZmZlcmluZyIKICAgICAgICBQcmltYXJ5W1ByaW1hcnkgQnVmZmVyXQogICAgICAgIFNlY29uZGFyeVtTZWNvbmRhcnkgQnVmZmVyXQogICAgZW5kCiAgICAKICAgIHN1YmdyYXBoICJSZW5kZXJpbmcgUHJvY2VzcyIKICAgICAgICBDbGVhcltDbGVhciBEaXJ0eSBSZWdpb25zXQogICAgICAgIERyYXdbRHJhdyBDb21wb25lbnRzXQogICAgICAgIERpZmZbQ2FsY3VsYXRlIERpZmZdCiAgICAgICAgQXBwbHlbQXBwbHkgQ2hhbmdlc10KICAgIGVuZAogICAgCiAgICBzdWJncmFwaCCAiT3B0aW1pemF0aW9uIgogICAgICAgIE1lcmdlW01lcmdlIFJlZ2lvbnNdCiAgICAgICAgQmF0Y2hbQmF0Y2ggVXBkYXRlc10KICAgICAgICBNaW5pbWl6ZVtNaW5pbWl6ZSBSZWRyYXdzXQogICAgZW5kCiAgICAKICAgIFByaW1hcnkgLS0+IENsZWFyCiAgICBDbGVhciAtLT4gRHJhdwogICAgRHJhdyAtLT4gU2Vjb25kYXJ5CiAgICAKICAgIFByaW1hcnkgLS0+IERpZmYKICAgIFNlY29uZGFyeSAtLT4gRGlmZgogICAgCiAgICBEaWZmIC0tPiBNZXJnZQogICAgTWVyZ2UgLS0+IEJhdGNoCiAgICBCYXRjaCAtLT4gQXBwbHkKICAgIAogICAgQXBwbHkgLS0+IFRlcm1pbmFsW1Rlcm1pbmFsIE91dHB1dF0KICAgIAogICAgU2Vjb25kYXJ5IC0uLT58IlN3YXAifCBQcmltYXJ5CiAgICBQcmltYXJ5IC0uLT58IlN3YXAifCBTZWNvbmRhcnk=)
+![TUI_MODULE_DESIGN Diagram 6](diagrams/TUI_MODULE_DESIGN_diagram_6.png)
 
 ## Usage Examples
 
@@ -2717,7 +2708,7 @@ const loginButton = new tui.Button({
     onClick: async () => {
         const username = usernameInput.getValue();
         const password = passwordInput.getValue();
-        
+
         if (await login(username, password)) {
             showMainScreen();
         } else {
@@ -2746,29 +2737,29 @@ form.appendChild(formLayout);
 // Create table with data
 const userTable = new tui.Table({
     columns: [
-        { 
-            key: 'id', 
-            label: 'ID', 
+        {
+            key: 'id',
+            label: 'ID',
             width: 6,
             align: 'right'
         },
-        { 
-            key: 'name', 
-            label: 'Name', 
-            width: 20 
+        {
+            key: 'name',
+            label: 'Name',
+            width: 20
         },
-        { 
-            key: 'email', 
-            label: 'Email', 
-            width: 30 
+        {
+            key: 'email',
+            label: 'Email',
+            width: 30
         },
-        { 
-            key: 'status', 
-            label: 'Status', 
+        {
+            key: 'status',
+            label: 'Status',
             width: 10,
             align: 'center',
             format: (value) => {
-                return value === 'active' 
+                return value === 'active'
                     ? tui.style({ fg: 'green' })(value)
                     : tui.style({ fg: 'red' })(value);
             }
